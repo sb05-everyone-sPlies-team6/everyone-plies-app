@@ -1,0 +1,33 @@
+server:
+  servlet:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
+
+spring:
+  application:
+    name: final-project
+    version: 1.0.0
+  profiles:
+    active: dev   # dev, prod 선택 가능
+  servlet:
+    multipart:
+      maxFileSize: 100MB # 파일 하나의 최대 크기
+      maxRequestSize: 300MB  # 한 번에 최대 업로드 가능 용량
+
+  # JPA
+  jpa:
+    hibernate:
+      ddl-auto: validate
+      # create, create-drop, update, validate, none
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        highlight_sql: true
+        use_sql_comments: true
+        dialect: org.hibernate.dialect.MySQL8Dialect  # MySQL8 기준
+        physical_naming_strategy: org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy
+        jdbc.time_zone: UTC
+    open-in-view: false
