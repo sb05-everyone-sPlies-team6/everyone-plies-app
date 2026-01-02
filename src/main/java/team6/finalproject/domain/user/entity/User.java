@@ -63,4 +63,9 @@ public class User {
     this.locked = Locked.Active;
     this.createdAt = LocalDateTime.now();
   }
+
+  public void changePassword(String newPassword) {
+    this.password = newPassword;
+    this.updatedAt = LocalDateTime.now();
+  }
 }
