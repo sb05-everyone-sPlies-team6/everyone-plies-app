@@ -17,14 +17,14 @@ import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
-@Table(name = "Users")
+@Table(name = "users")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 public class User {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private UUID id;
+  private Long id;
 
   @Column(name = "email", nullable = false, unique = true)
   private String email;
@@ -43,7 +43,7 @@ public class User {
   private Role role;
 
   @Enumerated(EnumType.STRING)
-  @Column(name = "locked")
+  @Column(name = "locked", nullable = false)
   private Locked locked;
 
   @Column(name = "created_at", nullable = false)
@@ -54,4 +54,13 @@ public class User {
 
   @Column(name = "updated_at")
   private LocalDateTime updatedAt;
+
+  public User(String email, String password, String name) {
+    this.email = email;
+    this.password = password;
+    this.name = name;
+    this.role = Role.USER;
+    this.locked = Locked.Active;
+    this.createdAt = LocalDateTime.now();
+  }
 }
