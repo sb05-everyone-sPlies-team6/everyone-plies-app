@@ -39,9 +39,14 @@ public class AdminContentService {
 	@Transactional
 	public void updateContent(Long id, ContentUpdateRequest dto) {
 		Content content = contentRepository.findById(id)
-			.orElseThrow(() -> new IllegalArgumentException("존재하지 않는 콘텐츠입니다."));
+			.orElseThrow(() -> new RuntimeException("해당 콘텐츠를 찾을 수 없습니다. ID: " + id));
 
-		content.update(dto.getTitle(), dto.getType(), dto.getDescription(), dto.getThumbnailUrl());
+		content.update(
+			dto.getTitle(),
+			dto.getType(),
+			dto.getDescription(),
+			dto.getThumbnailUrl()
+		);
 	}
 
 	@Transactional
