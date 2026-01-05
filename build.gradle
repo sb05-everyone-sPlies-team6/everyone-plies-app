@@ -38,6 +38,9 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
+    // OpenFeign 추가
+    implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
+
     // mapstruct
     implementation 'org.mapstruct:mapstruct:1.6.3'
     annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'
@@ -56,4 +59,11 @@ dependencies {
 
 tasks.named('test') {
     useJUnitPlatform()
+}
+
+// Spring Cloud 버전 관리를 위한 dependencyManagement
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:2024.0.0"
+    }
 }
