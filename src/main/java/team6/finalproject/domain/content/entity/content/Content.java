@@ -70,4 +70,21 @@ public class Content {
 		this.description = description;
 		this.thumbnailUrl = thumbnailUrl;
 	}
+
+	// 2. PATCH 처리를 위한 개별 업데이트 메서드 (인식되지 않던 문제 해결)
+	public void updateTitle(String title) {
+		this.title = title;
+	}
+
+	public void updateType(ContentType type) {
+		this.type = type;
+	}
+
+	public void updateDescription(String description) {
+		this.description = description;
+	}
+
+	public void updateThumbnailUrl(String thumbnailUrl) {
+		this.thumbnailUrl = thumbnailUrl;
+	}
 }

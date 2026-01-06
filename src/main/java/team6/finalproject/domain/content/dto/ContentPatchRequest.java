@@ -8,7 +8,7 @@ import team6.finalproject.domain.content.entity.content.ContentType;
 
 @Getter
 @NoArgsConstructor
-public class ContentUpdateRequest {
+public class ContentPatchRequest {
 
 	@NotBlank(message = "수정할 제목을 입력해주세요.")
 	private String title;

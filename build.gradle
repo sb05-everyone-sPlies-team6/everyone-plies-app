@@ -64,6 +64,6 @@ tasks.named('test') {
 // Spring Cloud 버전 관리를 위한 dependencyManagement
 dependencyManagement {
     imports {
-        mavenBom "org.springframework.cloud:spring-cloud-dependencies:2024.0.0"
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:2025.0.0"
     }
 }
