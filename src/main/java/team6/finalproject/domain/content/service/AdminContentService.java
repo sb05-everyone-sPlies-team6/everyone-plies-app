@@ -1,5 +1,7 @@
 package team6.finalproject.domain.content.service;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
@@ -31,64 +33,50 @@ public class AdminContentService {
 
 	public ContentResponse getContent(Long contentId) {
 		Content content = contentRepository.findById(contentId)
-			.orElseThrow(() -> new IllegalArgumentException("존재하지 않는 콘텐츠입니다. ID: " + contentId));
+			.orElseThrow(() -> new RuntimeException("Content not found"));
 
-		// Entity를 DTO로 변환하여 반환
-		return ContentResponse.from(content);
+		// 실제로는 content_tags 테이블 조인 필요 (우선 빈 리스트)
+		List<String> tags = Collections.emptyList();
+		return ContentResponse.from(content, tags);
 	}
 
 	@Transactional
-	public void patchContent(Long contentId, ContentPatchRequest request) {
-		Content content = contentRepository.findById(contentId)
-			.orElseThrow(() -> new IllegalArgumentException("존재하지 않는 콘텐츠입니다."));
-
-		// null 체크를 통해 전달된 데이터만 수정 (Partial Update)
-		if (request.getTitle() != null && !request.getTitle().isBlank()) {
-			content.updateTitle(request.getTitle());
-		}
-		if (request.getType() != null) {
-			content.updateType(request.getType());
-		}
-		if (request.getDescription() != null) {
-			content.updateDescription(request.getDescription());
-		}
-		if (request.getThumbnailUrl() != null) {
-			content.updateThumbnailUrl(request.getThumbnailUrl());
-		}
-	}
-
-	@Transactional
-	public Long createContent(ContentCreateRequest dto) {
-		// 수동 등록 시 externalId가 없으면 UUID 등으로 대체
-		String externalId = dto.getExternalId() != null ? dto.getExternalId() : UUID.randomUUID().toString();
-
+	public ContentResponse createContent(ContentCreateRequest dto) {
 		Content content = Content.builder()
 			.title(dto.getTitle())
 			.type(dto.getType())
 			.description(dto.getDescription())
 			.thumbnailUrl(dto.getThumbnailUrl())
-			.externalId(externalId)
+			.externalId(dto.getExternalId() != null ? dto.getExternalId() : UUID.randomUUID().toString())
 			.sourceType(SourceType.MANUAL)
 			.build();
 
-		return contentRepository.save(content).getContentId();
+		Content saved = contentRepository.save(content);
+		return ContentResponse.from(saved, dto.getTags());
 	}
 
 	@Transactional
-	public void updateContent(Long id, ContentPatchRequest dto) {
-		Content content = contentRepository.findById(id)
-			.orElseThrow(() -> new RuntimeException("해당 콘텐츠를 찾을 수 없습니다. ID: " + id));
+	public ContentResponse patchContent(Long contentId, ContentPatchRequest request) {
+		Content content = contentRepository.findById(contentId)
+			.orElseThrow(() -> new RuntimeException("Content not found"));
 
-		content.update(
-			dto.getTitle(),
-			dto.getType(),
-			dto.getDescription(),
-			dto.getThumbnailUrl()
-		);
+		// 중첩 구조(request 필드) 접근
+		if (request.getRequest() != null) {
+			ContentPatchRequest.PatchDetail detail = request.getRequest();
+			if (detail.getTitle() != null) content.updateTitle(detail.getTitle());
+			if (detail.getDescription() != null) content.updateDescription(detail.getDescription());
+			// 태그 업데이트 로직은 별도의 매핑 테이블 처리가 필요함
+		}
+
+		if (request.getThumbnail() != null) {
+			content.updateThumbnailUrl(request.getThumbnail());
+		}
+
+		return ContentResponse.from(content, Collections.emptyList());
 	}
 
 	@Transactional
-	public void deleteContent(Long id) {
-		contentRepository.deleteById(id);
+	public void deleteContent(Long contentId) {
+		contentRepository.deleteById(contentId);
 	}
 }

@@ -32,13 +32,15 @@ public class AdminContentController {
 	public ResponseEntity<CursorResponse<ContentResponse>> getContents(
 		@RequestParam(required = false) Long cursor,
 		@RequestParam(defaultValue = "10") int size) {
-		return ResponseEntity.ok(adminContentService.getContents(cursor, size));
+		//QueryDSL을 이용한 커서 페이징 구현하기
+		return ResponseEntity.ok().build();
 	}
 
 	// 2. 콘텐츠 생성 (어드민)
 	@PostMapping
-	public ResponseEntity<Long> createContent(@RequestBody @Valid ContentCreateRequest request) {
-		return ResponseEntity.status(HttpStatus.CREATED).body(adminContentService.createContent(request));
+	public ResponseEntity<ContentResponse> createContent(@RequestBody @Valid ContentCreateRequest request) {
+		ContentResponse response = adminContentService.createContent(request);
+		return ResponseEntity.status(HttpStatus.CREATED).body(response);
 	}
 
 	// 3. 콘텐츠 단건 조회
@@ -49,17 +51,16 @@ public class AdminContentController {
 
 	// 4. 어드민 콘텐츠 수정 (PATCH)
 	@PatchMapping("/{contentId}")
-	public ResponseEntity<Void> updateContent(
+	public ResponseEntity<ContentResponse> patchContent(
 		@PathVariable Long contentId,
-		@RequestBody @Valid ContentPatchRequest request) {
-		adminContentService.patchContent(contentId, request);
-		return ResponseEntity.ok().build();
+		@RequestBody ContentPatchRequest request) {
+		return ResponseEntity.ok(adminContentService.patchContent(contentId, request));
 	}
 
 	// 5. 어드민 콘텐츠 삭제
 	@DeleteMapping("/{contentId}")
 	public ResponseEntity<Void> deleteContent(@PathVariable Long contentId) {
 		adminContentService.deleteContent(contentId);
-		return ResponseEntity.noContent().build();
+		return ResponseEntity.ok().build(); //200성공
 	}
 }

@@ -1,5 +1,7 @@
 package team6.finalproject.domain.content.dto;
 
+import java.util.List;
+
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -9,14 +11,14 @@ import team6.finalproject.domain.content.entity.content.ContentType;
 @Getter
 @NoArgsConstructor
 public class ContentPatchRequest {
+	private PatchDetail request;
+	private String thumbnail;
 
-	@NotBlank(message = "수정할 제목을 입력해주세요.")
-	private String title;
-
-	@NotNull(message = "콘텐츠 타입을 선택해주세요.")
-	private ContentType type;
-
-	private String description;
-
-	private String thumbnailUrl;
+	@Getter
+	@NoArgsConstructor
+	public static class PatchDetail {
+		private String title;
+		private String description;
+		private List<String> tags;
+	}
 }

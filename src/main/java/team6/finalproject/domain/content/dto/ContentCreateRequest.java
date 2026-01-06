@@ -1,5 +1,7 @@
 package team6.finalproject.domain.content.dto;
 
+import java.util.List;
+
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -16,4 +18,6 @@ public class ContentCreateRequest {
 	private String description;
 	private String thumbnailUrl;
 	private String externalId; // API 연동 시 수동 입력 가능
+
+	private List<String> tags;
 }
