@@ -24,11 +24,11 @@ public class Content {
 	@Column(name = "content_id")
 	private Long contentId;
 
-	@Column(nullable = false)
+	@Column(nullable = false, length = 255)
 	private String title;
 
 	@Enumerated(EnumType.STRING)
-	@Column(nullable = false)
+	@Column(nullable = false, length = 50)
 	private ContentType type;
 
 	@Column(columnDefinition = "TEXT")
@@ -37,7 +37,7 @@ public class Content {
 	@Column(name = "thumbnail_url", length = 500)
 	private String thumbnailUrl;
 
-	@Column(name = "external_id", nullable = false, length = 100)
+	@Column(name = "external_id", length = 100)
 	private String externalId;
 
 	@Enumerated(EnumType.STRING)
@@ -45,10 +45,10 @@ public class Content {
 	private SourceType sourceType;
 
 	@Column(name = "total_rating")
-	private Float totalRating;
+	private Float totalRating = 0.0f;
 
 	@Column(name = "total_reviews")
-	private Integer totalReviews;
+	private Integer totalReviews = 0;
 
 	@Builder
 	public Content(String title, ContentType type, String description, String thumbnailUrl,
@@ -59,8 +59,6 @@ public class Content {
 		this.thumbnailUrl = thumbnailUrl;
 		this.externalId = externalId;
 		this.sourceType = sourceType;
-		this.totalRating = 0.0f;
-		this.totalReviews = 0;
 	}
 
 	// 관리자 수정을 위한 메서드
