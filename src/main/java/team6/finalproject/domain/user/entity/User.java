@@ -41,9 +41,8 @@ public class User {
   @Column(name = "role", nullable = false)
   private Role role;
 
-  @Enumerated(EnumType.STRING)
   @Column(name = "locked", nullable = false)
-  private Locked locked;
+  private Boolean locked;
 
   @Column(name = "created_at", nullable = false)
   private LocalDateTime createdAt;
@@ -59,7 +58,7 @@ public class User {
     this.password = password;
     this.name = name;
     this.role = Role.USER;
-    this.locked = Locked.Active;
+    this.locked = false;
     this.createdAt = LocalDateTime.now();
   }
 
