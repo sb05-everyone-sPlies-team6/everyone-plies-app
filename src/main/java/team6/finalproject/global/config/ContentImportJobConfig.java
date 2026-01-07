@@ -2,10 +2,10 @@ package team6.finalproject.global.config;
 
 import lombok.RequiredArgsConstructor;
 import team6.finalproject.domain.content.api.TmdbMovieDto;
+import team6.finalproject.domain.content.batch.ContentBatchDto;
 import team6.finalproject.domain.content.batch.ContentItemProcessor;
 import team6.finalproject.domain.content.batch.ContentItemWriter;
 import team6.finalproject.domain.content.batch.TmdbItemReader;
-import team6.finalproject.domain.content.entity.content.Content;
 
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
@@ -36,7 +36,7 @@ public class ContentImportJobConfig {
 	@Bean
 	public Step tmdbMovieStep() {
 		return new StepBuilder("tmdbMovieStep", jobRepository)
-			.<TmdbMovieDto, Content>chunk(10, transactionManager) // 10개 단위로 처리
+			.<TmdbMovieDto, ContentBatchDto>chunk(10, transactionManager) // 타입을 ContentBatchDto로 지정
 			.reader(tmdbItemReader)
 			.processor(contentItemProcessor)
 			.writer(contentItemWriter)

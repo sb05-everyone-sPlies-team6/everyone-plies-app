@@ -9,18 +9,20 @@ import team6.finalproject.domain.content.entity.content.ContentType;
 import team6.finalproject.domain.content.entity.content.SourceType;
 
 @Component
-public class ContentItemProcessor implements ItemProcessor<TmdbMovieDto, Content> {
+public class ContentItemProcessor implements ItemProcessor<TmdbMovieDto, ContentBatchDto> {
 
 	@Override
-	public Content process(TmdbMovieDto dto) {
-		// TMDB 영화 데이터를 Content 엔티티로 매핑
-		return Content.builder()
+	public ContentBatchDto process(TmdbMovieDto dto) {
+		Content content = Content.builder()
 			.title(dto.getTitle())
-			.type(ContentType.MOVIE) // TMDB 영화 API 호출 시
+			.type(ContentType.MOVIE)
 			.description(dto.getDescription())
 			.thumbnailUrl("https://image.tmdb.org/t/p/w500" + dto.getPosterPath())
 			.externalId(dto.getId().toString())
 			.sourceType(SourceType.TMDB)
 			.build();
+
+		// Writer에서 genreIds가 필요하므로 DTO에 담아서 넘겨줘야 합니다.
+		return new ContentBatchDto(content, dto.getGenreIds());
 	}
 }

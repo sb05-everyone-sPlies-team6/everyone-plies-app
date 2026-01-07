@@ -4,37 +4,51 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.batch.item.Chunk;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import team6.finalproject.domain.content.entity.content.Content;
+import team6.finalproject.domain.content.entity.tag.ContentTag;
+import team6.finalproject.domain.content.entity.tag.Tag;
 import team6.finalproject.domain.content.repository.ContentRepository;
+import team6.finalproject.domain.content.repository.ContentTagRepository;
+import team6.finalproject.domain.content.repository.TagRepository;
 
-import java.util.Optional;
+import java.util.List;
 
 @Component
 @RequiredArgsConstructor
-public class ContentItemWriter implements ItemWriter<Content> {
+public class ContentItemWriter implements ItemWriter<ContentBatchDto> {
 
 	private final ContentRepository contentRepository;
+	private final TagRepository tagRepository;
+	private final ContentTagRepository contentTagRepository;
 
 	@Override
-	public void write(Chunk<? extends Content> contents) {
-		for (Content newContent : contents) {
-			// 중복 체크: external_id와 source_type으로 기존 데이터 조회
-			Optional<Content> existingContent = contentRepository.findByExternalIdAndSourceType(
-				newContent.getExternalId(), newContent.getSourceType());
+	@Transactional
+	public void write(Chunk<? extends ContentBatchDto> dtos) {
+		for (ContentBatchDto dto : dtos) {
+			// 1. Contents 테이블 Upsert
+			Content content = dto.getContent();
+			Content savedContent = contentRepository.findByExternalIdAndSourceType(
+					content.getExternalId(), content.getSourceType())
+				.map(existing -> {
+					existing.update(content.getTitle(), content.getType(),
+						content.getDescription(), content.getThumbnailUrl());
+					return existing;
+				})
+				.orElseGet(() -> contentRepository.save(content));
 
-			if (existingContent.isPresent()) {
-				// 이미 존재하면 정보 업데이트 (Dirty Checking 활용)
-				Content content = existingContent.get();
-				content.update(
-					newContent.getTitle(),
-					newContent.getType(),
-					newContent.getDescription(),
-					newContent.getThumbnailUrl()
-				);
-			} else {
-				// 존재하지 않으면 새롭게 저장
-				contentRepository.save(newContent);
+			// 2. Tags 및 Contents_Tags 처리
+			List<String> genreNames = TmdbGenreMapper.toGenreNames(dto.getGenreIds());
+			for (String name : genreNames) {
+				// tags 테이블에 이름이 없으면 저장, 있으면 가져오기
+				Tag tag = tagRepository.findByName(name)
+					.orElseGet(() -> tagRepository.save(new Tag(name)));
+
+				// contents_tags 테이블에 매핑 정보가 없으면 저장
+				if (!contentTagRepository.existsByContentAndTag(savedContent, tag)) {
+					contentTagRepository.save(new ContentTag(savedContent, tag));
+				}
 			}
 		}
 	}

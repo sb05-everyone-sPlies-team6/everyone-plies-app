@@ -6,6 +6,7 @@ import team6.finalproject.domain.content.api.TmdbFeignClient;
 import team6.finalproject.domain.content.api.TmdbMovieDto;
 import team6.finalproject.domain.content.api.TmdbMovieResponse;
 
+import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -15,6 +16,7 @@ import java.util.List;
 
 @Slf4j
 @Component
+@StepScope // 이제 JobParameter를 인식할 수 있습니다.
 @RequiredArgsConstructor
 public class TmdbItemReader implements ItemReader<TmdbMovieDto> {
 
@@ -23,22 +25,38 @@ public class TmdbItemReader implements ItemReader<TmdbMovieDto> {
 	@Value("${tmdb.api.key}")
 	private String apiKey;
 
-	private int nextApiPage = 1; // 다음에 호출할 API 페이지
-	private List<TmdbMovieDto> resultsBuffer = new ArrayList<>(); // 현재 페이지의 데이터 버퍼
-	private int totalPages = 1; // API가 제공하는 전체 페이지 수
+	// JobParameters에서 'limit' 값을 가져옴. (기본 10)
+	@Value("#{jobParameters['limit'] ?: 10}")
+	private Long limit;
+
+	private int nextApiPage = 1;
+	private List<TmdbMovieDto> resultsBuffer = new ArrayList<>();
+	private int totalPages = 1;
+	private long processedCount = 0; // 실제 반환된 데이터 개수 카운트
 
 	@Override
 	public TmdbMovieDto read() {
-		// 1. 버퍼가 비어있으면 다음 페이지 데이터를 가져옴
+		// 1. 만약 목표한 limit 개수에 도달했다면 null 반환 (배치 종료)
+		if (processedCount >= limit) {
+			log.info("### 목표치 {}개 도달로 읽기 종료 ###", limit);
+			return null;
+		}
+
+		// 2. 버퍼가 비어있으면 다음 페이지 호출
 		if (resultsBuffer.isEmpty()) {
 			if (nextApiPage > totalPages) {
-				return null; // 모든 데이터를 읽었으면 종료
+				return null;
 			}
 			fetchNextPage();
 		}
 
-		// 2. 버퍼에서 데이터를 하나씩 꺼내서 반환
-		return resultsBuffer.isEmpty() ? null : resultsBuffer.remove(0);
+		// 3. 버퍼에서 하나 꺼내면서 카운트 증가
+		if (!resultsBuffer.isEmpty()) {
+			processedCount++;
+			return resultsBuffer.remove(0);
+		}
+
+		return null;
 	}
 
 	private void fetchNextPage() {
@@ -47,9 +65,9 @@ public class TmdbItemReader implements ItemReader<TmdbMovieDto> {
 		try {
 			TmdbMovieResponse response = tmdbFeignClient.discoverMovies(
 				apiKey,
-				"ko-KR", // 한국어 데이터
+				"ko-KR",
 				nextApiPage,
-				"popularity.desc" // 인기순 정렬
+				"popularity.desc"
 			);
 
 			if (response != null && response.getResults() != null) {
@@ -59,8 +77,7 @@ public class TmdbItemReader implements ItemReader<TmdbMovieDto> {
 			}
 		} catch (Exception e) {
 			log.error("TMDB API 호출 중 오류 발생: {}", e.getMessage());
-			// 에러 시 다음 페이지로 넘어가거나 종료하는 전략 선택 가능
-			this.nextApiPage = Integer.MAX_VALUE;
+			this.totalPages = 0; // 에러 시 더 이상 읽지 않도록 처리
 		}
 	}
 }
