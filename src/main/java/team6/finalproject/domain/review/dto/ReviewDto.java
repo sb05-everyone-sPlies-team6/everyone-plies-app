@@ -1,0 +1,29 @@
+package team6.finalproject.domain.review.dto;
+
+import team6.finalproject.domain.review.entity.Review;
+import team6.finalproject.domain.user.dto.UserSummary;
+
+import java.util.List;
+
+public record ReviewDto(
+        Long id,
+        Long contentId,
+        UserSummary author,
+        String text,
+        double rating
+) {
+    public static ReviewDto from(Review review) {
+    return new ReviewDto(
+            review.getId(),
+            review.getContent().getContentId(),
+            UserSummary.from(review.getAuthor()), // UserSummaryMapper 대신
+            review.getText(),
+            review.getRating()
+    );
+}
+    public static List<ReviewDto> fromList(List<Review> reviews) {
+        return reviews.stream()
+                .map(ReviewDto::from)
+                .toList();
+    }
+}
