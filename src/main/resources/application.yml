@@ -37,5 +37,10 @@ spring:
 #api
 tmdb:
   api:
-    key: ${TMDB_API_KEY}
     base-url: https://api.themoviedb.org/3
+    key: ${TMDB_API_KEY}
+
+sportsdb:
+  api:
+    url: https://www.thesportsdb.com/api/v1/json
+    key: ${SPORTSDB_API_KEY}
