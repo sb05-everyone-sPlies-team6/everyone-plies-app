@@ -1,11 +1,14 @@
 package team6.finalproject.global.config;
 
 import lombok.RequiredArgsConstructor;
+import team6.finalproject.domain.content.api.SportsDbEventResponse;
 import team6.finalproject.domain.content.api.TmdbMovieDto;
 import team6.finalproject.domain.content.batch.ContentBatchDto;
-import team6.finalproject.domain.content.batch.ContentItemProcessor;
+import team6.finalproject.domain.content.batch.sportsdb.SportsDbItemProcessor;
+import team6.finalproject.domain.content.batch.sportsdb.SportsDbItemReader;
+import team6.finalproject.domain.content.batch.tmdb.TmDbContentItemProcessor;
 import team6.finalproject.domain.content.batch.ContentItemWriter;
-import team6.finalproject.domain.content.batch.TmdbItemReader;
+import team6.finalproject.domain.content.batch.tmdb.TmdbItemReader;
 
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
@@ -23,14 +26,18 @@ public class ContentImportJobConfig {
 	private final JobRepository jobRepository;
 	private final PlatformTransactionManager transactionManager;
 	private final TmdbItemReader tmdbItemReader;
-	private final ContentItemProcessor contentItemProcessor;
+	private final TmDbContentItemProcessor tmDbContentItemProcessor;
 	private final ContentItemWriter contentItemWriter;
+	private final SportsDbItemReader sportsDbItemReader;
+	private final SportsDbItemProcessor sportsDbItemProcessor;
 
 	@Bean
 	public Job contentImportJob() {
 		return new JobBuilder("contentImportJob", jobRepository)
-			.start(tmdbMovieStep()) // 1. 영화 수집
-			.next(tmdbTvStep())    // 2. TV 시리즈 수집
+			.start(tmdbMovieStep())
+			.next(tmdbTvStep())
+			.next(sportsDbStep())
+			//.start(sportsDbStep())
 			.build();
 	}
 
@@ -39,7 +46,7 @@ public class ContentImportJobConfig {
 		return new StepBuilder("tmdbMovieStep", jobRepository)
 			.<TmdbMovieDto, ContentBatchDto>chunk(10, transactionManager) // 타입을 ContentBatchDto로 지정
 			.reader(tmdbItemReader)
-			.processor(contentItemProcessor)
+			.processor(tmDbContentItemProcessor)
 			.writer(contentItemWriter)
 			.build();
 	}
@@ -49,8 +56,18 @@ public class ContentImportJobConfig {
 		return new StepBuilder("tmdbTvStep", jobRepository)
 			.<TmdbMovieDto, ContentBatchDto>chunk(10, transactionManager)
 			.reader(tmdbItemReader) // 동일한 리더 사용 (파라미터로 구분)
-			.processor(contentItemProcessor)
+			.processor(tmDbContentItemProcessor)
 			.writer(contentItemWriter)
+			.build();
+	}
+
+	@Bean
+	public Step sportsDbStep() {
+		return new StepBuilder("sportsDbStep", jobRepository)
+			.<SportsDbEventResponse.EventDto, ContentBatchDto>chunk(10, transactionManager)
+			.reader(sportsDbItemReader)
+			.processor(sportsDbItemProcessor)
+			.writer(contentItemWriter) // 기존 Writer 재사용 가능
 			.build();
 	}
 }

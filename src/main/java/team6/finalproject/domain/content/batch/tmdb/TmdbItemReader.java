@@ -1,4 +1,4 @@
-package team6.finalproject.domain.content.batch;
+package team6.finalproject.domain.content.batch.tmdb;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,7 +31,7 @@ public class TmdbItemReader implements ItemReader<TmdbMovieDto> {
 
 	/*
 	// JobParameters에서 'limit' 값을 가져옴. (기본 10)
-	@Value("#{jobParameters['limit'] ?: 100}")
+	@Value("#{jobParameters['limit'] ?: 10}")
 	private Long limit;
 
 	 */

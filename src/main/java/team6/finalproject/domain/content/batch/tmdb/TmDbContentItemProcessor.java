@@ -1,4 +1,6 @@
-package team6.finalproject.domain.content.batch;
+package team6.finalproject.domain.content.batch.tmdb;
+
+import java.util.List;
 
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.ItemProcessor;
@@ -6,13 +8,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import team6.finalproject.domain.content.api.TmdbMovieDto;
+import team6.finalproject.domain.content.batch.ContentBatchDto;
 import team6.finalproject.domain.content.entity.content.Content;
 import team6.finalproject.domain.content.entity.content.ContentType;
 import team6.finalproject.domain.content.entity.content.SourceType;
 
 @Component
 @StepScope
-public class ContentItemProcessor implements ItemProcessor<TmdbMovieDto, ContentBatchDto> {
+public class TmDbContentItemProcessor implements ItemProcessor<TmdbMovieDto, ContentBatchDto> {
 	@Value("#{jobParameters['contentType']}")
 	private String contentTypeParam;
 
@@ -30,6 +33,7 @@ public class ContentItemProcessor implements ItemProcessor<TmdbMovieDto, Content
 			.sourceType(SourceType.TMDB)
 			.build();
 
-		return new ContentBatchDto(content, dto.getGenreIds());
+		List<String> names = TmdbGenreMapper.toGenreNames(dto.getGenreIds());
+		return new ContentBatchDto(content, names);
 	}
 }

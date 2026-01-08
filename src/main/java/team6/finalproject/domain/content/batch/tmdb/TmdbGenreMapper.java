@@ -1,4 +1,4 @@
-package team6.finalproject.domain.content.batch;
+package team6.finalproject.domain.content.batch.tmdb;
 
 import java.util.Collections;
 import java.util.List;

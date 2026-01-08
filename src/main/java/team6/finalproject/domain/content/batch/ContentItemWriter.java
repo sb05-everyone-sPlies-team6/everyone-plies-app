@@ -13,8 +13,6 @@ import team6.finalproject.domain.content.repository.ContentRepository;
 import team6.finalproject.domain.content.repository.ContentTagRepository;
 import team6.finalproject.domain.content.repository.TagRepository;
 
-import java.util.List;
-
 @Component
 @RequiredArgsConstructor
 public class ContentItemWriter implements ItemWriter<ContentBatchDto> {
@@ -38,9 +36,7 @@ public class ContentItemWriter implements ItemWriter<ContentBatchDto> {
 				})
 				.orElseGet(() -> contentRepository.save(content));
 
-			// 2. Tags 및 Contents_Tags 처리
-			List<String> genreNames = TmdbGenreMapper.toGenreNames(dto.getGenreIds());
-			for (String name : genreNames) {
+			for (String name : dto.getTagNames()) {
 				// tags 테이블에 이름이 없으면 저장, 있으면 가져오기
 				Tag tag = tagRepository.findByName(name)
 					.orElseGet(() -> tagRepository.save(new Tag(name)));

@@ -10,5 +10,5 @@ import team6.finalproject.domain.content.entity.content.Content;
 @AllArgsConstructor
 public class ContentBatchDto {
 	private Content content;
-	private List<Integer> genreIds;
+	private List<String> tagNames;
 }

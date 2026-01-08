@@ -24,12 +24,9 @@ public class BatchScheduler {
 	//@Scheduled(initialDelay = 5000, fixedDelay = 3600000) //테스트용 5초뒤
 	public void runContentImportJob() {
 		try {
-			// 1. 영화 수집 실행
 			runSingleTypeJob("MOVIE");
-
-			// 2. 드라마 수집 실행
-			// (참고: 동일 파라미터로 Job을 실행할 수 없으므로 datetime을 유니크하게 주어야 합니다)
 			runSingleTypeJob("DRAMA");
+			runSingleTypeJob("SPORTS");
 
 			log.info("전체 자동 배치 작업 완료");
 		} catch (Exception e) {
@@ -41,7 +38,6 @@ public class BatchScheduler {
 		JobParameters params = new JobParametersBuilder()
 			.addString("datetime", LocalDateTime.now().toString() + "-" + type) // 중복 실행 방지
 			.addString("contentType", type) // Processor와 Reader가 사용하는 핵심 파라미터
-			.addLong("limit", 10L)
 			.toJobParameters();
 
 		jobLauncher.run(contentImportJob, params);
