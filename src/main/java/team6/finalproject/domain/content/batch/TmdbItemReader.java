@@ -25,9 +25,16 @@ public class TmdbItemReader implements ItemReader<TmdbMovieDto> {
 	@Value("${tmdb.api.key}")
 	private String apiKey;
 
+	// JobParameters에서 contentType을 받아옵니다 (MOVIE 또는 DRAMA)
+	@Value("#{jobParameters['contentType']}")
+	private String contentTypeParam;
+
+	/*
 	// JobParameters에서 'limit' 값을 가져옴. (기본 10)
-	@Value("#{jobParameters['limit'] ?: 10}")
+	@Value("#{jobParameters['limit'] ?: 100}")
 	private Long limit;
+
+	 */
 
 	private int nextApiPage = 1;
 	private List<TmdbMovieDto> resultsBuffer = new ArrayList<>();
@@ -36,11 +43,15 @@ public class TmdbItemReader implements ItemReader<TmdbMovieDto> {
 
 	@Override
 	public TmdbMovieDto read() {
+
+		/*
 		// 1. 만약 목표한 limit 개수에 도달했다면 null 반환 (배치 종료)
 		if (processedCount >= limit) {
 			log.info("### 목표치 {}개 도달로 읽기 종료 ###", limit);
 			return null;
 		}
+
+		 */
 
 		// 2. 버퍼가 비어있으면 다음 페이지 호출
 		if (resultsBuffer.isEmpty()) {
@@ -60,15 +71,29 @@ public class TmdbItemReader implements ItemReader<TmdbMovieDto> {
 	}
 
 	private void fetchNextPage() {
-		log.info("### TMDB API 호출 - Page: {} ###", nextApiPage);
+		log.info("### TMDB API 호출 (타입: {}) - Page: {} ###", contentTypeParam, nextApiPage);
 
 		try {
-			TmdbMovieResponse response = tmdbFeignClient.discoverMovies(
-				apiKey,
-				"ko-KR",
-				nextApiPage,
-				"popularity.desc"
-			);
+			TmdbMovieResponse response;
+
+			// 파라미터 값에 따라 호출할 Feign Client 메서드를 분기합니다.
+			if ("DRAMA".equals(contentTypeParam)) {
+				// 드라마(TV 시리즈) API 호출
+				response = tmdbFeignClient.discoverTvShows(
+					apiKey,
+					"ko-KR",
+					nextApiPage,
+					"popularity.desc"
+				);
+			} else {
+				// 영화 API 호출
+				response = tmdbFeignClient.discoverMovies(
+					apiKey,
+					"ko-KR",
+					nextApiPage,
+					"popularity.desc"
+				);
+			}
 
 			if (response != null && response.getResults() != null) {
 				this.resultsBuffer.addAll(response.getResults());
@@ -77,7 +102,7 @@ public class TmdbItemReader implements ItemReader<TmdbMovieDto> {
 			}
 		} catch (Exception e) {
 			log.error("TMDB API 호출 중 오류 발생: {}", e.getMessage());
-			this.totalPages = 0; // 에러 시 더 이상 읽지 않도록 처리
+			this.totalPages = 0;
 		}
 	}
 }

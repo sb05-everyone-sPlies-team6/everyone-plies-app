@@ -21,6 +21,7 @@ public interface TmdbFeignClient {
 	TmdbMovieResponse discoverTvShows(
 		@RequestParam("api_key") String apiKey,
 		@RequestParam("language") String language,
-		@RequestParam("page") int page
+		@RequestParam("page") int page,
+		@RequestParam("sort_by") String sortBy
 	);
 }

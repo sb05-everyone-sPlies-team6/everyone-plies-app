@@ -29,7 +29,8 @@ public class ContentImportJobConfig {
 	@Bean
 	public Job contentImportJob() {
 		return new JobBuilder("contentImportJob", jobRepository)
-			.start(tmdbMovieStep())
+			.start(tmdbMovieStep()) // 1. 영화 수집
+			.next(tmdbTvStep())    // 2. TV 시리즈 수집
 			.build();
 	}
 
@@ -38,6 +39,16 @@ public class ContentImportJobConfig {
 		return new StepBuilder("tmdbMovieStep", jobRepository)
 			.<TmdbMovieDto, ContentBatchDto>chunk(10, transactionManager) // 타입을 ContentBatchDto로 지정
 			.reader(tmdbItemReader)
+			.processor(contentItemProcessor)
+			.writer(contentItemWriter)
+			.build();
+	}
+
+	@Bean
+	public Step tmdbTvStep() {
+		return new StepBuilder("tmdbTvStep", jobRepository)
+			.<TmdbMovieDto, ContentBatchDto>chunk(10, transactionManager)
+			.reader(tmdbItemReader) // 동일한 리더 사용 (파라미터로 구분)
 			.processor(contentItemProcessor)
 			.writer(contentItemWriter)
 			.build();
