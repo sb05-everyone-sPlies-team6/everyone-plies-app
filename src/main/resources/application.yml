@@ -44,3 +44,15 @@ sportsdb:
   api:
     url: https://www.thesportsdb.com/api/v1/json
     key: ${SPORTSDB_API_KEY}
+
+# security
+security:
+  jwt:
+    issuer: "mopl-auth-server"
+    secret: ${SECURITY_JWT_SECRET:change-me-jwt-secret-at-least-32chars}
+    access-token-validity-seconds: ${SECURITY_JWT_ACCESS_TOKEN_VALIDITY_SECONDS:3600}
+    refresh-token-validity-seconds: ${SECURITY_JWT_REFRESH_TOKEN_VALIDITY_SECONDS:1209600}
+    header: "Authorization"
+    prefix: "Bearer "
+    algorithm: "HS256"
+    clock-skew-seconds: 60

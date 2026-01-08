@@ -62,6 +62,17 @@ dependencies {
     implementation("me.paulschwarz:spring-dotenv:4.0.0") {
         exclude group: 'org.springframework.boot', module: 'spring-boot-starter'
     }
+    implementation "me.paulschwarz:spring-dotenv:4.0.0"
+
+    // security
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+
+    // jwt
+    implementation 'com.nimbusds:nimbus-jose-jwt:10.3'
+
+    // OAuth2
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
 }
 
 tasks.named('test') {
