@@ -59,26 +59,20 @@ public class ReviewService {
             String sortBy,
             String sortDirection
     ) {
-        // Sort 객체 생성
         Sort.Direction direction = sortDirection.equalsIgnoreCase("ASCENDING") ? Sort.Direction.ASC : Sort.Direction.DESC;
         Sort sort = Sort.by(direction, sortBy);
 
-        // Pageable 생성 (limit + 정렬)
         Pageable pageable = PageRequest.of(0, limit + 1, sort); // +1 해서 hasNext 확인
 
-        // 리뷰 조회
         List<Review> reviews = reviewRepository.findByContentWithCursor(contentId, cursor, pageable);
 
-        // limit 적용 & hasNext 계산
         boolean hasNext = reviews.size() > limit;
         if (hasNext) {
             reviews = reviews.subList(0, limit);
         }
 
-        // nextCursor 계산 (마지막 리뷰 id)
         String nextCursor = hasNext ? String.valueOf(reviews.get(reviews.size() - 1).getId()) : null;
-
-        // totalCount
+        
         long totalCount = reviewRepository.countByContentContentId(contentId);
 
         return new ReviewListResponse(
