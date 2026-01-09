@@ -8,8 +8,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import lombok.RequiredArgsConstructor;
 import team6.finalproject.domain.user.dto.JwtInformation;
 
-// 어차피 하나인데 굳이? -> 생각 필요
-
 @RequiredArgsConstructor
 public class InMemoryJwtRegistry implements JwtRegistry {
 
