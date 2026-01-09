@@ -77,7 +77,9 @@ public class SecurityConfig {
             "/assets/**",
             "/static/**",
             "/css/**",
-            "/js/**"
+            "/js/**",
+            "/api/sse/**",
+            "/api/contents/**"
         ).permitAll()
         // 인증 관련 공개 엔드포인트
         .requestMatchers("/api/auth/csrf-token").permitAll()
