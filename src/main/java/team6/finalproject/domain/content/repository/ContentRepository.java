@@ -9,7 +9,6 @@ import team6.finalproject.domain.content.entity.content.Content;
 import team6.finalproject.domain.content.entity.content.SourceType;
 
 @Repository
-public interface ContentRepository extends JpaRepository<Content, Long> {
-	// JpaRepository를 상속받는 것만으로 save(), findById(), deleteById()를 사용할 수 있음.
+public interface ContentRepository extends JpaRepository<Content, Long>, ContentRepositoryCustom {
 	Optional<Content> findByExternalIdAndSourceType(String externalId, SourceType sourceType);
 }
