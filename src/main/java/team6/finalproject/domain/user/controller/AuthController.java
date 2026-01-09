@@ -36,9 +36,13 @@ public class AuthController {
 
   @PostMapping("/refresh")
   public ResponseEntity<JwtDto> refreshToken(
-      @CookieValue(JwtTokenProvider.REFRESH_TOKEN) String refreshToken,
+      @CookieValue(value = JwtTokenProvider.REFRESH_TOKEN, required = false) String refreshToken,
       HttpServletResponse response
   ) {
+    if (refreshToken == null) {
+      // 에러처리 어떻게 해야할ㅈㅣ?..
+      return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();    }
+
     log.info("Refresh Token: {}", refreshToken);
     JwtInformation jwtInformation = authService.refreshToken(refreshToken);
     Cookie cookie = jwtTokenProvider.generateRefreshTokenCookie(jwtInformation.getRefreshToken());
