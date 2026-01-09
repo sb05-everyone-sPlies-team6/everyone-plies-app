@@ -18,18 +18,18 @@ public record ContentResponse(
 	public static ContentResponse from(Content content, List<String> tags) {
 		return new ContentResponse(
 			content.getContentId().toString(),
-			convertType(content.getType()), // MOVIE -> movie 변환 로직
+			mapToFrontendType(content.getType()), // MOVIE -> "movie" 등으로 변환
 			content.getTitle(),
 			content.getDescription(),
 			content.getThumbnailUrl(),
 			tags,
 			content.getTotalRating().doubleValue(),
 			content.getTotalReviews(),
-			0 // watcherCount 초기값
+			0
 		);
 	}
 
-	private static String convertType(ContentType type) {
+	private static String mapToFrontendType(ContentType type) {
 		return switch (type) {
 			case MOVIE -> "movie";
 			case DRAMA -> "tvSeries";

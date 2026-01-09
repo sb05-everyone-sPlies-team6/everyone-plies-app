@@ -23,29 +23,29 @@ public class AdminContentService {
 
 	private final ContentRepository contentRepository;
 
-	@Transactional(readOnly = true)
-	public CursorResponse<ContentResponse> getContents(
-		Long cursor, int limit, String sortBy, String sortDirection, String type, String keyword) {
+	public CursorResponse<ContentResponse> getContents(Long cursor, int limit, String sortBy, String sortDirection, String typeEqual, String keywordLike) {
 
-		List<Content> contents = contentRepository.findAllByCursor(cursor, limit, sortBy, sortDirection, type, keyword);
+		// 1. 모든 파라미터를 레포지토리에 전달
+		List<Content> contents = contentRepository.findAllByCursor(cursor, limit, sortBy, sortDirection, typeEqual, keywordLike);
 
 		boolean hasNext = contents.size() > limit;
 		List<Content> resultContents = hasNext ? contents.subList(0, limit) : contents;
 
 		List<ContentResponse> data = resultContents.stream()
-			.map(content -> ContentResponse.from(content, Collections.emptyList())) // 태그는 추후 매핑
+			.map(c -> ContentResponse.from(c, Collections.emptyList()))
 			.toList();
 
 		String nextCursor = hasNext ? resultContents.get(limit - 1).getContentId().toString() : null;
 
+		// 2. 응답 시 sortBy와 sortDirection도 다시 포함
 		return new CursorResponse<>(
 			data,
 			nextCursor,
-			null, // nextIdAfter (보조 커서)
+			null, // nextIdAfter
 			hasNext,
-			contentRepository.count(), // totalCount
-			sortBy,
-			sortDirection
+			contentRepository.count(),
+			sortBy != null ? sortBy : "createdAt",
+			sortDirection != null ? sortDirection : "DESCENDING"
 		);
 	}
 
