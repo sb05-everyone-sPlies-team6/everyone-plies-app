@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import team6.finalproject.domain.user.dto.PasswordChangeRequest;
 import team6.finalproject.domain.user.dto.UserCreateRequest;
+import team6.finalproject.domain.user.dto.UserLockUpdateRequest;
 import team6.finalproject.domain.user.dto.UserRoleUpdateRequest;
 import team6.finalproject.domain.user.entity.User;
 import team6.finalproject.domain.user.service.UserService;
@@ -41,6 +42,13 @@ public class UserController {
   @PatchMapping("{userId}/role")
   public ResponseEntity<Void>  updateRole(@PathVariable Long userId, @RequestBody UserRoleUpdateRequest request) {
     userService.updateRole(userId, request);
+    return ResponseEntity.status(HttpStatus.OK).build();
+  }
+
+  @PreAuthorize("hasRole('ADMIN')")
+  @PatchMapping("{userId}/locked")
+  public ResponseEntity<Void> updateLock(@PathVariable Long userId, @RequestBody UserLockUpdateRequest request) {
+    userService.updateLocked(userId, request);
     return ResponseEntity.status(HttpStatus.OK).build();
   }
 

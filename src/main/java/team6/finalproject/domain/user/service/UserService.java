@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 import team6.finalproject.domain.user.dto.PasswordChangeRequest;
 import team6.finalproject.domain.user.dto.UserCreateRequest;
+import team6.finalproject.domain.user.dto.UserLockUpdateRequest;
 import team6.finalproject.domain.user.dto.UserRoleUpdateRequest;
 import team6.finalproject.domain.user.entity.User;
 import team6.finalproject.domain.user.repository.UserRepository;
@@ -63,5 +64,20 @@ public class UserService {
 
     user.changeRole(request.role());
     jwtRegistry.invalidateJwtInformationByUserId(userId);
+  }
+
+  @Transactional
+  public void updateLocked(Long userId, UserLockUpdateRequest request) {
+    User user = userRepository.findById(userId)
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+    if (user.getLocked() == request.locked()) {
+      return;
+    }
+
+    user.changeLock(request.locked());
+    if (request.locked()) {
+      jwtRegistry.invalidateJwtInformationByUserId(userId);
+    }
   }
 }

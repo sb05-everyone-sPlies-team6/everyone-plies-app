@@ -63,8 +63,8 @@ public class SecurityConfig {
             "/api/auth/refresh" ,
             "/api/users",  // 토큰 리프레시도 제외
             "/api/sse",
-            "/h2-console/**",
-            "api/**"
+            "/h2-console/**"
+            // "/api/**"
         )
         .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
         .csrfTokenRequestHandler(new SpaCsrfTokenRequestHandler())

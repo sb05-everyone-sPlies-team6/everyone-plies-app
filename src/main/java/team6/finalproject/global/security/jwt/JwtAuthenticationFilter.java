@@ -47,6 +47,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
           UserDto userDto = jwtTokenProvider.parseAccessToken(token).userDto();
           MoplUserDetails userDetails = new MoplUserDetails(userDto, null);
 
+          if (!userDetails.isAccountNonLocked()) {
+            SecurityContextHolder.clearContext();
+            sendErrorResponse(response, "Account is locked", HttpServletResponse.SC_FORBIDDEN);
+            return;
+          }
+
           var reachableAuthorities = roleHierarchy.getReachableGrantedAuthorities(
               userDetails.getAuthorities());
 

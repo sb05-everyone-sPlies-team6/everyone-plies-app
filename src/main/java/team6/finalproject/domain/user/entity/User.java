@@ -72,4 +72,9 @@ public class User {
     this.role = newRole;
     this.updatedAt = LocalDateTime.now();
   }
+
+  public void changeLock(boolean locked) {
+    this.locked = locked;
+    this.updatedAt = LocalDateTime.now();
+  }
 }
