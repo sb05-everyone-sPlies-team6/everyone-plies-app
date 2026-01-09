@@ -83,12 +83,12 @@ public class JwtTokenProvider {
     Date expiration = new Date(now.getTime() + accessTokenExpirationMs);
 
     JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
-        .subject(user.name())
+        .subject(user.email())
         .jwtID(tokenId)
         .issuer(issuer)
         .claim("userId", user.id())
         .claim("type", tokenType)
-        .claim("email", user.email())
+        .claim("username", user.name())
         .claim("createdAt", user.createdAt().toString())
         .claim("profileImageUrl", user.profileImageUrl())
         .claim("locked", Boolean.TRUE.equals(user.locked()))
@@ -147,6 +147,15 @@ public class JwtTokenProvider {
     }
   }
 
+  public String getUsernameFromToken(String token) {
+    try {
+      SignedJWT signedJWT = SignedJWT.parse(token);
+      return signedJWT.getJWTClaimsSet().getSubject();
+    } catch (Exception e) {
+      throw new IllegalArgumentException("Invalid JWT token", e);
+    }
+  }
+
   public Cookie generateRefreshTokenCookie(String refreshToken) {
     Cookie cookie = new Cookie(REFRESH_TOKEN, refreshToken);
     cookie.setHttpOnly(true);
@@ -187,8 +196,8 @@ public class JwtTokenProvider {
       }
 
       Long userId = claims.getLongClaim("userId");
-      String username = claims.getSubject();
-      String email = claims.getStringClaim("email");
+      String email = claims.getSubject();
+      String username = claims.getStringClaim("username");
       String profileImageUrl = claims.getStringClaim("profileImageUrl");
       Boolean locked = claims.getBooleanClaim("locked");
       String createdAtStr = claims.getStringClaim("createdAt");

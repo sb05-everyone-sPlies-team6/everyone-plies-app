@@ -2,6 +2,7 @@ package team6.finalproject.global.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Arrays;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -54,7 +55,7 @@ public class SecurityConfig {
       AuthenticationManager authenticationManager  // AuthenticationManager 주입
   ) throws Exception {
 
-    // 1) CSRF 설정 (쿠키 방식 + 일부 URL 예외)
+//     1) CSRF 설정 (쿠키 방식 + 일부 URL 예외)
     http.csrf(csrf -> csrf
         .ignoringRequestMatchers(
             "/api/auth/sign-in",     // 로그인은 CSRF 검사 제외
@@ -161,7 +162,7 @@ public class SecurityConfig {
     return http.build();
   }
 
-  // CORS 설정
+//   CORS 설정
   @Bean
   public CorsConfigurationSource corsConfigurationSource() {
     CorsConfiguration config = new CorsConfiguration();
