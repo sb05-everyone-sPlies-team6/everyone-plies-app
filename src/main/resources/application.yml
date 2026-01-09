@@ -15,6 +15,8 @@ spring:
     multipart:
       maxFileSize: 100MB # 파일 하나의 최대 크기
       maxRequestSize: 300MB  # 한 번에 최대 업로드 가능 용량
+  main:
+    allow-bean-definition-overriding: true
 
   # JPA
   jpa:
@@ -31,6 +33,17 @@ spring:
         physical_naming_strategy: org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy
         jdbc.time_zone: UTC
     open-in-view: false
+
+#api
+tmdb:
+  api:
+    base-url: https://api.themoviedb.org/3
+    key: ${TMDB_API_KEY}
+
+sportsdb:
+  api:
+    url: https://www.thesportsdb.com/api/v1/json
+    key: ${SPORTSDB_API_KEY}
 
 # security
 security:

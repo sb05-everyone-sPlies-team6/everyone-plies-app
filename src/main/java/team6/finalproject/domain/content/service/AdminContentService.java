@@ -23,19 +23,36 @@ public class AdminContentService {
 
 	private final ContentRepository contentRepository;
 
-	// 커서 기반 조회 로직 (QueryDSL 구현 권장)
-	public CursorResponse<ContentResponse> getContents(Long cursor, int size) {
-		// 1. cursor보다 작은 ID를 size + 1개 조회 (다음 페이지 유무 확인용)
-		// 2. 결과를 ContentResponse DTO로 변환
-		// 3. nextCursor 계산 및 CursorResponse 반환
-		return null; // 상세 QueryDSL 로직은 Repository 영역에서 처리
+	@Transactional(readOnly = true)
+	public CursorResponse<ContentResponse> getContents(
+		Long cursor, int limit, String sortBy, String sortDirection, String type, String keyword) {
+
+		List<Content> contents = contentRepository.findAllByCursor(cursor, limit, sortBy, sortDirection, type, keyword);
+
+		boolean hasNext = contents.size() > limit;
+		List<Content> resultContents = hasNext ? contents.subList(0, limit) : contents;
+
+		List<ContentResponse> data = resultContents.stream()
+			.map(content -> ContentResponse.from(content, Collections.emptyList())) // 태그는 추후 매핑
+			.toList();
+
+		String nextCursor = hasNext ? resultContents.get(limit - 1).getContentId().toString() : null;
+
+		return new CursorResponse<>(
+			data,
+			nextCursor,
+			null, // nextIdAfter (보조 커서)
+			hasNext,
+			contentRepository.count(), // totalCount
+			sortBy,
+			sortDirection
+		);
 	}
 
 	public ContentResponse getContent(Long contentId) {
 		Content content = contentRepository.findById(contentId)
 			.orElseThrow(() -> new RuntimeException("Content not found"));
 
-		// 실제로는 content_tags 테이블 조인 필요 (우선 빈 리스트)
 		List<String> tags = Collections.emptyList();
 		return ContentResponse.from(content, tags);
 	}
@@ -65,7 +82,7 @@ public class AdminContentService {
 			ContentPatchRequest.PatchDetail detail = request.getRequest();
 			if (detail.getTitle() != null) content.updateTitle(detail.getTitle());
 			if (detail.getDescription() != null) content.updateDescription(detail.getDescription());
-			// 태그 업데이트 로직은 별도의 매핑 테이블 처리가 필요함
+			// 태그 업데이트 로직은 별도의 매핑 테이블 처리가 필요
 		}
 
 		if (request.getThumbnail() != null) {
