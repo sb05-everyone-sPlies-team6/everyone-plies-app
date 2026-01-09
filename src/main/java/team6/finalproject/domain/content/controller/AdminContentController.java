@@ -31,9 +31,18 @@ public class AdminContentController {
 	@GetMapping
 	public ResponseEntity<CursorResponse<ContentResponse>> getContents(
 		@RequestParam(required = false) Long cursor,
-		@RequestParam(defaultValue = "10") int size) {
-		//QueryDSL을 이용한 커서 페이징 구현하기
-		return ResponseEntity.ok().build();
+		@RequestParam(defaultValue = "10") int limit,
+		@RequestParam(required = false) String sortBy,
+		@RequestParam(required = false) String sortDirection,
+		@RequestParam(required = false) String typeEqual,
+		@RequestParam(required = false) String keywordLike) {
+
+		// 서비스 메서드 호출 시 모든 파라미터를 전달합니다.
+		CursorResponse<ContentResponse> response = adminContentService.getContents(
+			cursor, limit, sortBy, sortDirection, typeEqual, keywordLike
+		);
+
+		return ResponseEntity.ok(response);
 	}
 
 	// 2. 콘텐츠 생성 (어드민)
