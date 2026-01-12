@@ -20,7 +20,7 @@ import team6.finalproject.domain.content.repository.ContentTagRepository;
 
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
+@Transactional
 public class AdminContentService {
 
 	private final ContentRepository contentRepository;
@@ -63,13 +63,12 @@ public class AdminContentService {
 	public ContentResponse createContent(ContentCreateRequest dto) {
 		Content content = Content.builder()
 			.title(dto.getTitle())
-			.type(mapToEnum(dto.getType())) // 문자열 -> Enum 변환
+			.type(mapToEnum(dto.getType()))
 			.description(dto.getDescription())
 			.thumbnailUrl(dto.getThumbnailUrl())
-			.externalId(dto.getId())
+			.externalId(dto.getId() != null ? dto.getId() : java.util.UUID.randomUUID().toString())
 			.sourceType(SourceType.MANUAL)
 			.build();
-
 		return ContentResponse.from(contentRepository.save(content), dto.getTags());
 	}
 

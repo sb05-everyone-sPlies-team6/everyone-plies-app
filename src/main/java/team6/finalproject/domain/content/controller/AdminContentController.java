@@ -49,15 +49,16 @@ public class AdminContentController {
 	// 2. 콘텐츠 생성 (어드민)
 	@PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ResponseEntity<ContentResponse> createContent(
-		@RequestParam("title") String title,
-		@RequestParam("type") String type,
-		@RequestParam(value = "id", required = false) String id,
-		@RequestParam(value = "description", required = false) String description,
-		@RequestParam(value = "thumbnailUrl", required = false) String thumbnailUrl,
-		@RequestParam(value = "tags", required = false) List<String> tags) {
+		// JSON 데이터를 'request'라는 파트 받는다.
+		@RequestPart("request") @Valid ContentCreateRequest request,
+		// 파일 데이터는 'thumbnail' 파트로 받되, 없어도(null) 통과되게 한다. (s3연결 전)
+		@RequestPart(value = "thumbnail", required = false) org.springframework.web.multipart.MultipartFile file) {
 
-		ContentCreateRequest request = new ContentCreateRequest(id, type, title, description, thumbnailUrl, tags);
-		return ResponseEntity.status(HttpStatus.CREATED).body(adminContentService.createContent(request));
+		// 썸네일 파일 처리 로직은 나중에 S3 연동 시 이 부분에 추가
+		// 지금은 request DTO에 담긴 정보만 사용하여 저장
+
+		return ResponseEntity.status(HttpStatus.CREATED)
+			.body(adminContentService.createContent(request));
 	}
 
 	// 3. 콘텐츠 단건 조회
