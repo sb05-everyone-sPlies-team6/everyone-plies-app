@@ -1,15 +1,20 @@
 package team6.finalproject.domain.content.controller;
 
+import java.util.List;
+
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
@@ -42,10 +47,17 @@ public class AdminContentController {
 		));
 	}
 	// 2. 콘텐츠 생성 (어드민)
-	@PostMapping
-	public ResponseEntity<ContentResponse> createContent(@RequestBody @Valid ContentCreateRequest request) {
-		ContentResponse response = adminContentService.createContent(request);
-		return ResponseEntity.status(HttpStatus.CREATED).body(response);
+	@PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	public ResponseEntity<ContentResponse> createContent(
+		@RequestParam("title") String title,
+		@RequestParam("type") String type,
+		@RequestParam(value = "id", required = false) String id,
+		@RequestParam(value = "description", required = false) String description,
+		@RequestParam(value = "thumbnailUrl", required = false) String thumbnailUrl,
+		@RequestParam(value = "tags", required = false) List<String> tags) {
+
+		ContentCreateRequest request = new ContentCreateRequest(id, type, title, description, thumbnailUrl, tags);
+		return ResponseEntity.status(HttpStatus.CREATED).body(adminContentService.createContent(request));
 	}
 
 	// 3. 콘텐츠 단건 조회
@@ -55,11 +67,18 @@ public class AdminContentController {
 	}
 
 	// 4. 어드민 콘텐츠 수정 (PATCH)
-	@PatchMapping("/{contentId}")
+	@PatchMapping(value = "/{contentId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ResponseEntity<ContentResponse> patchContent(
 		@PathVariable Long contentId,
-		@RequestBody ContentPatchRequest request) {
-		return ResponseEntity.ok(adminContentService.patchContent(contentId, request));
+		@RequestPart("request") ContentPatchRequest.PatchDetail request, // JSON 파트 처리
+		@RequestPart(value = "thumbnail", required = false) String thumbnail) {
+
+		// 프론트 명세대로 request 객체와 thumbnail 스트링을 따로 받습니다.
+		ContentPatchRequest patchRequest = new ContentPatchRequest();
+		patchRequest.setRequest(request);
+		patchRequest.setThumbnail(thumbnail);
+
+		return ResponseEntity.ok(adminContentService.patchContent(contentId, patchRequest));
 	}
 
 	// 5. 어드민 콘텐츠 삭제

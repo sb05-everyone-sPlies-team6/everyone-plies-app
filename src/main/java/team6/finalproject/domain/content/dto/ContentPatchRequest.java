@@ -4,15 +4,16 @@ import java.util.List;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Getter
+@Setter
 @NoArgsConstructor
 public class ContentPatchRequest {
-	private PatchDetail request;
-	private String thumbnail;
+	private PatchDetail request; // 중첩 구조
+	private String thumbnail;    // PATCH는 thumbnail (Url 없음)
 
-	@Getter
-	@NoArgsConstructor
+	@Getter @Setter @NoArgsConstructor
 	public static class PatchDetail {
 		private String title;
 		private String description;

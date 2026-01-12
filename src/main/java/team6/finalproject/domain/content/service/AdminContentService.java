@@ -13,8 +13,10 @@ import team6.finalproject.domain.content.dto.ContentResponse;
 import team6.finalproject.domain.content.dto.ContentPatchRequest;
 import team6.finalproject.domain.content.dto.CursorResponse;
 import team6.finalproject.domain.content.entity.content.Content;
+import team6.finalproject.domain.content.entity.content.ContentType;
 import team6.finalproject.domain.content.entity.content.SourceType;
 import team6.finalproject.domain.content.repository.ContentRepository;
+import team6.finalproject.domain.content.repository.ContentTagRepository;
 
 @Service
 @RequiredArgsConstructor
@@ -22,6 +24,7 @@ import team6.finalproject.domain.content.repository.ContentRepository;
 public class AdminContentService {
 
 	private final ContentRepository contentRepository;
+	private final ContentTagRepository contentTagRepository;
 
 	public CursorResponse<ContentResponse> getContents(Long cursor, int limit, String sortBy, String sortDirection, String typeEqual, String keywordLike) {
 
@@ -57,36 +60,35 @@ public class AdminContentService {
 		return ContentResponse.from(content, tags);
 	}
 
-	@Transactional
 	public ContentResponse createContent(ContentCreateRequest dto) {
 		Content content = Content.builder()
 			.title(dto.getTitle())
-			.type(dto.getType())
+			.type(mapToEnum(dto.getType())) // 문자열 -> Enum 변환
 			.description(dto.getDescription())
 			.thumbnailUrl(dto.getThumbnailUrl())
-			.externalId(dto.getExternalId() != null ? dto.getExternalId() : UUID.randomUUID().toString())
+			.externalId(dto.getId())
 			.sourceType(SourceType.MANUAL)
 			.build();
 
-		Content saved = contentRepository.save(content);
-		return ContentResponse.from(saved, dto.getTags());
+		return ContentResponse.from(contentRepository.save(content), dto.getTags());
 	}
 
 	@Transactional
-	public ContentResponse patchContent(Long contentId, ContentPatchRequest request) {
+	public ContentResponse patchContent(Long contentId, ContentPatchRequest dto) {
 		Content content = contentRepository.findById(contentId)
 			.orElseThrow(() -> new RuntimeException("Content not found"));
+		System.out.println(dto.getRequest().getTitle());
 
-		// 중첩 구조(request 필드) 접근
-		if (request.getRequest() != null) {
-			ContentPatchRequest.PatchDetail detail = request.getRequest();
+		// 중첩된 request 객체 내부 값 처리
+		if (dto.getRequest() != null) {
+			ContentPatchRequest.PatchDetail detail = dto.getRequest();
 			if (detail.getTitle() != null) content.updateTitle(detail.getTitle());
 			if (detail.getDescription() != null) content.updateDescription(detail.getDescription());
-			// 태그 업데이트 로직은 별도의 매핑 테이블 처리가 필요
 		}
 
-		if (request.getThumbnail() != null) {
-			content.updateThumbnailUrl(request.getThumbnail());
+		// 평면 구조의 thumbnail 처리
+		if (dto.getThumbnail() != null) {
+			content.updateThumbnailUrl(dto.getThumbnail());
 		}
 
 		return ContentResponse.from(content, Collections.emptyList());
@@ -94,6 +96,23 @@ public class AdminContentService {
 
 	@Transactional
 	public void deleteContent(Long contentId) {
-		contentRepository.deleteById(contentId);
+		Content content = contentRepository.findById(contentId)
+			.orElseThrow(() -> new RuntimeException("Content not found"));
+		contentTagRepository.deleteByContent(content);
+		contentRepository.delete(content);
+	}
+
+	private ContentType mapToEnum(String type) {
+		//null 체크 추가
+		if (type == null) {
+			return ContentType.MOVIE; // 혹은 적절한 기본값
+		}
+
+		return switch (type) {
+			case "tvSeries" -> ContentType.DRAMA;
+			case "sport" -> ContentType.SPORTS;
+			case "movie" -> ContentType.MOVIE;
+			default -> ContentType.MOVIE;
+		};
 	}
 }
