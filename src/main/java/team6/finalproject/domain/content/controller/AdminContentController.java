@@ -1,17 +1,16 @@
 package team6.finalproject.domain.content.controller;
 
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
@@ -35,15 +34,17 @@ public class AdminContentController {
 	// 1. 콘텐츠 목록 조회 (커서 페이지네이션)
 	@GetMapping
 	public ResponseEntity<CursorResponse<ContentResponse>> getContents(
-		@RequestParam(required = false) Long cursor,
+		@RequestParam(required = false) String cursor,     // Long -> String
+		@RequestParam(required = false) UUID idAfter,       // idAfter 추가
 		@RequestParam(defaultValue = "10") int limit,
+		@RequestParam(required = false) List<String> tagsIn, // tagsIn 추가
 		@RequestParam(required = false) String sortBy,
 		@RequestParam(required = false) String sortDirection,
 		@RequestParam(required = false) String typeEqual,
 		@RequestParam(required = false) String keywordLike) {
 
 		return ResponseEntity.ok(adminContentService.getContents(
-			cursor, limit, sortBy, sortDirection, typeEqual, keywordLike
+			cursor, idAfter, limit, tagsIn, sortBy, sortDirection, typeEqual, keywordLike
 		));
 	}
 	// 2. 콘텐츠 생성 (어드민)
@@ -56,7 +57,6 @@ public class AdminContentController {
 
 		// 썸네일 파일 처리 로직은 나중에 S3 연동 시 이 부분에 추가
 		// 지금은 request DTO에 담긴 정보만 사용하여 저장
-
 		return ResponseEntity.status(HttpStatus.CREATED)
 			.body(adminContentService.createContent(request));
 	}
