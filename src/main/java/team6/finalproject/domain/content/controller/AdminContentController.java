@@ -1,15 +1,20 @@
 package team6.finalproject.domain.content.controller;
 
+import java.util.List;
+
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
@@ -37,19 +42,23 @@ public class AdminContentController {
 		@RequestParam(required = false) String typeEqual,
 		@RequestParam(required = false) String keywordLike) {
 
-		// 서비스 메서드 호출 시 모든 파라미터를 전달합니다.
-		CursorResponse<ContentResponse> response = adminContentService.getContents(
+		return ResponseEntity.ok(adminContentService.getContents(
 			cursor, limit, sortBy, sortDirection, typeEqual, keywordLike
-		);
-
-		return ResponseEntity.ok(response);
+		));
 	}
-
 	// 2. 콘텐츠 생성 (어드민)
-	@PostMapping
-	public ResponseEntity<ContentResponse> createContent(@RequestBody @Valid ContentCreateRequest request) {
-		ContentResponse response = adminContentService.createContent(request);
-		return ResponseEntity.status(HttpStatus.CREATED).body(response);
+	@PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	public ResponseEntity<ContentResponse> createContent(
+		// JSON 데이터를 'request'라는 파트 받는다.
+		@RequestPart("request") @Valid ContentCreateRequest request,
+		// 파일 데이터는 'thumbnail' 파트로 받되, 없어도(null) 통과되게 한다. (s3연결 전)
+		@RequestPart(value = "thumbnail", required = false) org.springframework.web.multipart.MultipartFile file) {
+
+		// 썸네일 파일 처리 로직은 나중에 S3 연동 시 이 부분에 추가
+		// 지금은 request DTO에 담긴 정보만 사용하여 저장
+
+		return ResponseEntity.status(HttpStatus.CREATED)
+			.body(adminContentService.createContent(request));
 	}
 
 	// 3. 콘텐츠 단건 조회
@@ -59,11 +68,18 @@ public class AdminContentController {
 	}
 
 	// 4. 어드민 콘텐츠 수정 (PATCH)
-	@PatchMapping("/{contentId}")
+	@PatchMapping(value = "/{contentId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ResponseEntity<ContentResponse> patchContent(
 		@PathVariable Long contentId,
-		@RequestBody ContentPatchRequest request) {
-		return ResponseEntity.ok(adminContentService.patchContent(contentId, request));
+		@RequestPart("request") ContentPatchRequest.PatchDetail request, // JSON 파트 처리
+		@RequestPart(value = "thumbnail", required = false) String thumbnail) {
+
+		// 프론트 명세대로 request 객체와 thumbnail 스트링을 따로 받습니다.
+		ContentPatchRequest patchRequest = new ContentPatchRequest();
+		patchRequest.setRequest(request);
+		patchRequest.setThumbnail(thumbnail);
+
+		return ResponseEntity.ok(adminContentService.patchContent(contentId, patchRequest));
 	}
 
 	// 5. 어드민 콘텐츠 삭제

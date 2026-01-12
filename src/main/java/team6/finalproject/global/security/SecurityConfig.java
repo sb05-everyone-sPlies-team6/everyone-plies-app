@@ -63,6 +63,7 @@ public class SecurityConfig {
             "/api/auth/refresh" ,
             "/api/users",  // 토큰 리프레시도 제외
             "/api/sse",
+            "/api/contents/**",
             "/h2-console/**"
             // "/api/**"
         )
@@ -91,7 +92,7 @@ public class SecurityConfig {
         .requestMatchers("/api/auth/refresh").permitAll()
         .requestMatchers("/api/auth/reset-password").permitAll()
         .requestMatchers(HttpMethod.POST, "/api/users").permitAll() // 회원가입
-
+        .requestMatchers(HttpMethod.POST, "/api/contents").hasRole("ADMIN") //콘텐츠 생성
         // Swagger / 문서 / H2 콘솔
         .requestMatchers(
             "/swagger-resource/**",
