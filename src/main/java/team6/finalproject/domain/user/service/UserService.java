@@ -1,14 +1,18 @@
 package team6.finalproject.domain.user.service;
 
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
+import team6.finalproject.domain.user.dto.CursorResponse;
 import team6.finalproject.domain.user.dto.PasswordChangeRequest;
 import team6.finalproject.domain.user.dto.UserCreateRequest;
+import team6.finalproject.domain.user.dto.UserDto;
 import team6.finalproject.domain.user.dto.UserLockUpdateRequest;
 import team6.finalproject.domain.user.dto.UserRoleUpdateRequest;
+import team6.finalproject.domain.user.entity.Role;
 import team6.finalproject.domain.user.entity.User;
 import team6.finalproject.domain.user.repository.UserRepository;
 import team6.finalproject.global.security.jwt.JwtRegistry;
@@ -30,6 +34,12 @@ public class UserService {
     User user = new User(request.email(), request.password(), request.name());
 
     return userRepository.save(user);
+  }
+
+  @Transactional(readOnly = true)
+  public CursorResponse<UserDto> findAll(String emailLike, Role role, Boolean isLocked,
+      String cursor, Long idAfter, int limit, String sortDirection, String sortBy) {
+    return userRepository.findAll(emailLike,  role, isLocked, cursor, idAfter, limit, sortDirection, sortBy);
   }
 
   @Transactional(readOnly = true)

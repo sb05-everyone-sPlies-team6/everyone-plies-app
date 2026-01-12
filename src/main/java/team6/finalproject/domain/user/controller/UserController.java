@@ -1,6 +1,7 @@
 package team6.finalproject.domain.user.controller;
 
 import jakarta.validation.Valid;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,10 +13,13 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import team6.finalproject.domain.user.dto.CursorResponse;
 import team6.finalproject.domain.user.dto.PasswordChangeRequest;
 import team6.finalproject.domain.user.dto.UserCreateRequest;
+import team6.finalproject.domain.user.dto.UserDto;
 import team6.finalproject.domain.user.dto.UserLockUpdateRequest;
 import team6.finalproject.domain.user.dto.UserRoleUpdateRequest;
+import team6.finalproject.domain.user.entity.Role;
 import team6.finalproject.domain.user.entity.User;
 import team6.finalproject.domain.user.service.UserService;
 
@@ -30,6 +34,15 @@ public class UserController {
   public ResponseEntity<User> create(@RequestBody @Valid UserCreateRequest request) {
     User user = userService.create(request);
     return ResponseEntity.status(HttpStatus.CREATED).body(user);
+  }
+
+  @PreAuthorize("hasRole('ADMIN')")
+  @GetMapping
+  public ResponseEntity<CursorResponse<UserDto>> findAll(String emailLike, Role role, Boolean isLocked,
+      String cursor, Long idAfter, int limit, String sortDirection, String sortBy) {
+    CursorResponse<UserDto> all = userService.findAll(emailLike, role, isLocked, cursor, idAfter,
+        limit, sortDirection, sortBy);
+    return ResponseEntity.status(HttpStatus.OK).body(all);
   }
 
   @GetMapping("/{userId}")

@@ -6,7 +6,7 @@ import org.springframework.stereotype.Repository;
 import team6.finalproject.domain.user.entity.User;
 
 @Repository
-public interface UserRepository extends JpaRepository<User, Long> {
+public interface UserRepository extends JpaRepository<User, Long>, UserQueryRepository {
 
   boolean existsByEmail(String email);
   Optional<User> findByEmail(String email);
