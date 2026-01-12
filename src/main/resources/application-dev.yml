@@ -27,6 +27,8 @@ spring:
       enabled: true
       path: /h2-console
 
+  security:
+    debug: true
 
 logging:
   level:
@@ -41,3 +43,5 @@ logging:
 
     # 사용자 package
     team6.final-project: trace
+
+    org.springframework.security: DEBUG
