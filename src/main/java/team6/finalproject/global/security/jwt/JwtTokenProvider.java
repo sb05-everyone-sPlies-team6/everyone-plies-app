@@ -230,4 +230,14 @@ public class JwtTokenProvider {
     } catch (Exception e) {
         throw new IllegalArgumentException("JWT 파싱 실패: " + e.getMessage(), e);    }
   }
+
+    // JWT에서 userId를 추출하는 메서드
+    public Long getUserIdFromToken(String token) {
+        try {
+            SignedJWT signedJWT = SignedJWT.parse(token);
+            return signedJWT.getJWTClaimsSet().getLongClaim("userId"); // userId를 "userId" claim에서 추출
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Invalid JWT token", e);
+        }
+    }
 }

@@ -91,6 +91,7 @@ public class SecurityConfig {
         .requestMatchers("/api/auth/refresh").permitAll()
         .requestMatchers("/api/auth/reset-password").permitAll()
         .requestMatchers(HttpMethod.POST, "/api/users").permitAll() // 회원가입
+            .requestMatchers("/api/contents/*/watching-sessions").permitAll()
 
         // Swagger / 문서 / H2 콘솔
         .requestMatchers(

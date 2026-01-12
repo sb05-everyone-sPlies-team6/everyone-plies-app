@@ -23,6 +23,10 @@ public class MoplUserDetails implements UserDetails {
     return List.of(new SimpleGrantedAuthority("ROLE_".concat(userDto.role().name())));
   }
 
+    public Long getUserId() {
+        return userDto.id(); // UserDto에서 userId 필드 가져오기
+    }
+
   @Override
   public String getPassword() {
     return password;
