@@ -29,7 +29,7 @@ public record ContentResponse(
 		);
 	}
 
-	private static String mapToFrontendType(ContentType type) {
+	public static String mapToFrontendType(ContentType type) {
 		return switch (type) {
 			case MOVIE -> "movie";
 			case DRAMA -> "tvSeries";

@@ -1,6 +1,7 @@
 package team6.finalproject.domain.content.repository;
 
 import java.util.List;
+import java.util.UUID;
 
 import com.querydsl.core.types.Order;
 
@@ -12,24 +13,61 @@ import lombok.RequiredArgsConstructor;
 import team6.finalproject.domain.content.entity.content.Content;
 import team6.finalproject.domain.content.entity.content.ContentType;
 import team6.finalproject.domain.content.entity.content.QContent;
+import team6.finalproject.domain.content.entity.tag.QContentTag;
+import team6.finalproject.domain.content.entity.tag.QTag;
 
 @RequiredArgsConstructor
 public class ContentRepositoryImpl implements ContentRepositoryCustom {
 	private final JPAQueryFactory queryFactory;
 
 	@Override
-	public List<Content> findAllByCursor(Long cursor, int limit, String sortBy, String sortDirection, String typeEqual, String keywordLike) {
+	public List<Content> findAllByCursor(
+		String cursor,
+		UUID idAfter,
+		int limit,
+		List<String> tagsIn,
+		String sortBy,
+		String sortDirection,
+		String typeEqual,
+		String keywordLike) {
+
 		QContent content = QContent.content;
+		QContentTag contentTag = QContentTag.contentTag;
+		QTag tag = QTag.tag;
 
 		return queryFactory.selectFrom(content)
+			.distinct() // 태그 조인 시 발생하는 데이터 중복 제거
+			.leftJoin(contentTag).on(contentTag.content.eq(content))
+			.leftJoin(tag).on(contentTag.tag.eq(tag))
 			.where(
-				ltCursorId(cursor, sortBy, sortDirection), // 정렬 기준에 따른 커서 조건
+				cursorCondition(cursor, idAfter, sortBy, sortDirection), // 문자열 커서 조건
 				eqType(typeEqual),
-				containsKeyword(keywordLike)
+				containsKeyword(keywordLike),
+				inTags(tagsIn) // [추가] 태그 필터 조건
 			)
-			.orderBy(getOrderSpecifier(sortBy, sortDirection)) // 동적 정렬 적용
+			.orderBy(getOrderSpecifier(sortBy, sortDirection))
 			.limit(limit + 1)
 			.fetch();
+	}
+
+	private BooleanExpression inTags(List<String> tagsIn) {
+		if (tagsIn == null || tagsIn.isEmpty()) {
+			return null;
+		}
+		return QTag.tag.name.in(tagsIn);
+	}
+
+	// 커서 조건 처리 (String 타입을 Long으로 변환)
+	private BooleanExpression cursorCondition(String cursor, UUID idAfter, String sortBy, String sortDirection) {
+		if (cursor == null || cursor.isBlank()) return null;
+
+		try {
+			long cursorId = Long.parseLong(cursor);
+			// 기본적으로 contentId 기준 내림차순(DESC)일 경우 lt(less than) 사용
+			return QContent.content.contentId.lt(cursorId);
+		} catch (NumberFormatException e) {
+			return null;
+		}
 	}
 
 	private OrderSpecifier<?> getOrderSpecifier(String sortBy, String sortDirection) {
@@ -40,16 +78,14 @@ public class ContentRepositoryImpl implements ContentRepositoryCustom {
 
 		return switch (sortBy) {
 			case "rate" -> new OrderSpecifier<>(order, content.totalRating);
-			case "watcherCount" -> new OrderSpecifier<>(order, content.totalReviews); // 명세에 따라 필드 매핑
-			default -> new OrderSpecifier<>(order, content.contentId); // createdAt 대용
+			case "watcherCount" -> new OrderSpecifier<>(order, content.totalReviews);
+			default -> new OrderSpecifier<>(order, content.contentId);
 		};
 	}
 
 	// 프론트의 소문자 타입을 백엔드 Enum으로 매핑하여 필터링
 	private BooleanExpression eqType(String typeStr) {
-		if (typeStr == null || typeStr.isEmpty() || typeStr.equalsIgnoreCase("all")) {
-			return null;
-		}
+		if (typeStr == null || typeStr.isEmpty() || typeStr.equalsIgnoreCase("all")) return null;
 
 		ContentType type = switch (typeStr) {
 			case "movie" -> ContentType.MOVIE;
@@ -57,7 +93,6 @@ public class ContentRepositoryImpl implements ContentRepositoryCustom {
 			case "sport" -> ContentType.SPORTS;
 			default -> null;
 		};
-
 		return type != null ? QContent.content.type.eq(type) : null;
 	}
 
