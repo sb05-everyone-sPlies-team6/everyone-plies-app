@@ -56,4 +56,11 @@ public class Notification {
   @Column(name = "target_type")
   private TargetType targetType;
 
+  public Notification(User user, String title, String content, Level level) {
+    this.user = user;
+    this.title = title;
+    this.content = content;
+    this.level = level;
+    this.createdAt = LocalDateTime.now();
+  }
 }

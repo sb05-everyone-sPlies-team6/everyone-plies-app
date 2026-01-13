@@ -1,5 +1,6 @@
 package team6.finalproject.domain.sse;
 
+import java.util.Collection;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -70,5 +71,22 @@ public class SseService {
     }
 
     return emitter;
+  }
+
+  public void send(Collection<Long> receiverIds, String eventName, NotificationDto dto) {
+    List<SseEmitter> emitters = sseEmitterRepository.findAllByReceiverIdsIn(receiverIds);
+
+    emitters.forEach(emitter -> {
+      try {
+        emitter.send(
+            SseEmitter.event()
+                .id(dto.id().toString())
+                .name("notifications")
+                .data(dto)
+        );
+      } catch (Exception e) {
+        emitter.completeWithError(e);
+      }
+    });
   }
 }

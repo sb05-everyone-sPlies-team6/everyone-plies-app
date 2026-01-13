@@ -1,6 +1,8 @@
 package team6.finalproject.domain.sse;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -34,6 +36,14 @@ public class SseEmitterRepository {
       emiiters.remove(emitter);
       return emiiters.isEmpty() ? null : emiiters;
     });
+  }
+
+  public List<SseEmitter> findAllByReceiverIdsIn(Collection<Long> receiverIds) {
+    return data.entrySet().stream()
+        .filter(entry -> receiverIds.contains(entry.getKey()))
+        .map(Map.Entry::getValue)
+        .flatMap(Collection::stream)
+        .toList();
   }
 
 }
