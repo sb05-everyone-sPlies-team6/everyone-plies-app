@@ -1,11 +1,16 @@
 package team6.finalproject.domain.review.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import team6.finalproject.domain.review.dto.ReviewCreateRequest;
 import team6.finalproject.domain.review.dto.ReviewDto;
 import team6.finalproject.domain.review.dto.ReviewListResponse;
+import team6.finalproject.domain.review.dto.ReviewUpdateRequest;
 import team6.finalproject.domain.review.service.ReviewService;
+import team6.finalproject.global.security.MoplUserDetails;
 
 @RestController
 @RequiredArgsConstructor
@@ -16,23 +21,55 @@ public class ReviewController {
 
     // POST /api/reviews?userId=1
     @PostMapping
-    public ReviewDto createReview(
-            @RequestParam Long userId,   // 임시 userId, TODO: jwt개발되면 수정
+    public ResponseEntity<ReviewDto> createReview(
+            @AuthenticationPrincipal MoplUserDetails userDetails,
             @RequestBody ReviewCreateRequest request
     ) {
-        return reviewService.createReview(userId, request);
+        ReviewDto reviewDto =
+                reviewService.createReview(userDetails.getUserDto().id(), request);
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(reviewDto);
     }
 
     @GetMapping
-    public ReviewListResponse getReviews(
+    public ResponseEntity<ReviewListResponse> getReviews(
             @RequestParam Long contentId,
             @RequestParam(required = false) Long cursor,
             @RequestParam(defaultValue = "10") int limit,
             @RequestParam(defaultValue = "createdAt") String sortBy,
-            @RequestParam(defaultValue = "DESCENDING") String sortDirection
+            @RequestParam(defaultValue = "DESCENDING") String sortDirection,
+            @AuthenticationPrincipal MoplUserDetails userDetails
     ) {
-        return reviewService.getReviewsByContentWithCursor(
-                contentId, cursor, limit, sortBy, sortDirection
+        Long userId = userDetails != null ? userDetails.getUserDto().id() : null;
+
+        ReviewListResponse reviewListResponse = reviewService.getReviewsByContentWithCursor(
+                contentId, cursor, limit, sortBy, sortDirection, userId);
+
+        return ResponseEntity.ok(reviewListResponse);
+    }
+
+    @PatchMapping("/{reviewId}")
+    public ResponseEntity<ReviewDto> updateReview(
+            @PathVariable Long reviewId,
+            @RequestBody ReviewUpdateRequest request,
+            @AuthenticationPrincipal MoplUserDetails userDetails
+    ) {
+        ReviewDto updatedReview = reviewService.updateReview(
+                reviewId,
+                userDetails.getUserDto().id(),
+                request
         );
+        return ResponseEntity.ok(updatedReview);
+    }
+
+    @DeleteMapping("/{reviewId}")
+    public ResponseEntity<Void> deleteReview(
+            @PathVariable Long reviewId,
+            @AuthenticationPrincipal MoplUserDetails userDetails
+    ) {
+        reviewService.deleteReview(reviewId, userDetails.getUserDto().id());
+        return ResponseEntity.ok().build();
     }
 }

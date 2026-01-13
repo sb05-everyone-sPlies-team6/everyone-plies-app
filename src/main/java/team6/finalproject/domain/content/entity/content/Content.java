@@ -85,4 +85,12 @@ public class Content {
 	public void updateThumbnailUrl(String thumbnailUrl) {
 		this.thumbnailUrl = thumbnailUrl;
 	}
+
+    public void addReviewRating(float rating) { // 리뷰 작성시 평점 및 개수 반영
+        if (totalReviews == null) totalReviews = 0;
+        if (totalRating == null) totalRating = 0.0f;
+
+        totalRating = (totalRating * totalReviews + rating) / (totalReviews + 1);
+        totalReviews = totalReviews + 1;
+    }
 }

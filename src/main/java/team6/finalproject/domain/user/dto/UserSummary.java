@@ -3,15 +3,16 @@ package team6.finalproject.domain.user.dto;
 import team6.finalproject.domain.user.entity.User;
 
 public record UserSummary(
-        Long userId,
+        String userId,
         String name,
         String profileImageUrl
 ) {
     public static UserSummary from(User user) {
         return new UserSummary(
-                user.getId(),
+                String.valueOf(user.getId()),
                 user.getName(),
                 user.getProfileImageUrl()
         );
     }
 }
+
