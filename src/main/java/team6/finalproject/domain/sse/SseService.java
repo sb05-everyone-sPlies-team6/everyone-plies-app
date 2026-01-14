@@ -2,10 +2,14 @@ package team6.finalproject.domain.sse;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+
+import team6.finalproject.domain.dm.dto.MessageResponse;
 import team6.finalproject.domain.notification.dto.NotificationDto;
 import team6.finalproject.domain.notification.entity.Notification;
 import team6.finalproject.domain.notification.repository.NotificationRepository;
@@ -86,6 +90,41 @@ public class SseService {
         );
       } catch (Exception e) {
         emitter.completeWithError(e);
+      }
+    });
+  }
+
+  public void sendReadNotification(Long userId, Long dmId) {
+    List<SseEmitter> emitters = sseEmitterRepository.findAllByReceiverIdsIn(List.of(userId));
+
+    emitters.forEach(emitter -> {
+      try {
+        emitter.send(
+            SseEmitter.event()
+                .name("direct-messages-read")
+                .data(Map.of("conversationId", dmId))
+        );
+      } catch (Exception e) {
+        log.error("Failed to send read notification to user {}", userId, e);
+        emitter.completeWithError(e);
+        sseEmitterRepository.delete(userId, emitter);
+      }
+    });
+  }
+  public void sendDmNotification(Long receiverId, MessageResponse messageResponse) {
+    List<SseEmitter> emitters = sseEmitterRepository.findAllByReceiverIdsIn(List.of(receiverId));
+
+    emitters.forEach(emitter -> {
+      try {
+        emitter.send(
+            SseEmitter.event()
+                .name("direct-messages")  //프론트엔드가 리스닝하는 이벤트명..
+                .data(messageResponse)    // 전송할 데이터
+        );
+      } catch (Exception e) {
+        log.error("Failed to send DM notification to user {}", receiverId, e);
+        emitter.completeWithError(e);
+        sseEmitterRepository.delete(receiverId, emitter);
       }
     });
   }

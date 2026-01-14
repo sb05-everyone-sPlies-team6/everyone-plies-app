@@ -19,6 +19,11 @@ import team6.finalproject.domain.dm.entity.Message;
 import team6.finalproject.domain.dm.repository.DmParticipantRepository;
 import team6.finalproject.domain.dm.repository.MessageRepository;
 import team6.finalproject.domain.dm.repository.DmRepository;
+import team6.finalproject.domain.notification.dto.NotificationDto;
+import team6.finalproject.domain.notification.entity.Level;
+import team6.finalproject.domain.notification.entity.Notification;
+import team6.finalproject.domain.notification.entity.TargetType;
+import team6.finalproject.domain.notification.repository.NotificationRepository;
 import team6.finalproject.domain.sse.SseService;
 import team6.finalproject.domain.user.entity.User;
 import team6.finalproject.domain.user.repository.UserRepository;
@@ -32,6 +37,7 @@ public class DmService {
 	private final DmParticipantRepository dmParticipantRepository;
 	private final MessageRepository messageRepository;
 	private final UserRepository userRepository;
+	private final NotificationRepository notificationRepository;
 	private final SseService sseService;
 
 	//대화방 생성 또는 조회
@@ -115,13 +121,12 @@ public class DmService {
 
 		Message savedMessage = messageRepository.save(message);
 
-		//발신자 및 수신자 정보 조회
 		User sender = userRepository.findById(senderId)
 			.orElseThrow(() -> new IllegalArgumentException("발신자를 찾을 수 없습니다."));
 		User receiver = userRepository.findById(receiverId)
 			.orElseThrow(() -> new IllegalArgumentException("수신자를 찾을 수 없습니다."));
 
-		return new MessageResponse(
+		MessageResponse response = new MessageResponse(
 			savedMessage.getId(),
 			savedMessage.getDmId(),
 			savedMessage.getCreatedAt(),
@@ -130,5 +135,23 @@ public class DmService {
 			savedMessage.getContent(),
 			savedMessage.isRead()
 		);
+
+		sseService.sendDmNotification(receiverId, response);
+		Notification notification = new Notification(
+			receiver,
+			"새로운 메시지",
+			sender.getName() + "님이 메시지를 보냈습니다.",
+			Level.INFO,
+			dmId,
+			TargetType.DM_RECEIVED
+		);
+
+		notificationRepository.save(notification);
+
+		NotificationDto notificationDto = NotificationDto.from(notification);
+
+		sseService.send(List.of(receiverId), "notifications", notificationDto);
+
+		return response;
 	}
 }

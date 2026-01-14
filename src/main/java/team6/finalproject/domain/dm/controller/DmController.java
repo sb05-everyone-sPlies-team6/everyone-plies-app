@@ -8,6 +8,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -91,6 +92,16 @@ public class DmController {
 		@AuthenticationPrincipal MoplUserDetails user,
 		@PathVariable Long conversationId) {
 		dmService.markAllAsRead(conversationId, user.getUserDto().id());
+		return ResponseEntity.ok().build();
+	}
+
+	@PutMapping("/conversations/{conversationId}/messages/{messageId}/read")
+	public ResponseEntity<Void> markMessageAsRead(
+		@PathVariable Long conversationId,
+		@PathVariable Long messageId,
+		@AuthenticationPrincipal MoplUserDetails userDetails
+	) {
+		dmService.markAllAsRead(conversationId, userDetails.getUserDto().id());
 		return ResponseEntity.ok().build();
 	}
 }

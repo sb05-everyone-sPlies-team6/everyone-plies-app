@@ -79,12 +79,25 @@ public class DmRepositoryImpl implements DmRepositoryCustom {
 
 	@Override
 	public Optional<DmResponse> findDmDetailById(Long dmId, Long currentUserId) {
+		QMessage latestMsg = new QMessage("latestMsgDetail");
+
 		return Optional.ofNullable(queryFactory
 			.select(Projections.constructor(DmResponse.class,
 				dm.id,
 				Projections.constructor(UserSimpleResponse.class,
 					user.id, user.name, user.profileImageUrl),
-				Expressions.nullExpression(MessageResponse.class),
+
+				// [수정] nullExpression 대신 진짜 최신 메시지 정보를 넣습니다.
+				Projections.constructor(MessageResponse.class,
+					latestMsg.id,
+					latestMsg.dmId,
+					latestMsg.createdAt,
+					Expressions.nullExpression(UserSimpleResponse.class), // 프론트는 ID만 필요하므로 내부는 null이어도 됨
+					Expressions.nullExpression(UserSimpleResponse.class),
+					latestMsg.content,
+					latestMsg.isRead
+				),
+
 				JPAExpressions.selectOne()
 					.from(message)
 					.where(message.dmId.eq(dm.id)
@@ -95,6 +108,12 @@ public class DmRepositoryImpl implements DmRepositoryCustom {
 			.from(dm)
 			.join(dmParticipant).on(dmParticipant.dmId.eq(dm.id))
 			.join(user).on(user.id.eq(dmParticipant.userId))
+			.leftJoin(latestMsg).on(latestMsg.id.eq(
+				JPAExpressions.select(message.id.max())
+					.from(message)
+					.where(message.dmId.eq(dmId))
+			))
+
 			.where(
 				dm.id.eq(dmId),
 				dmParticipant.userId.ne(currentUserId)
