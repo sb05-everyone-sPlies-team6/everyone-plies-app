@@ -2,16 +2,12 @@ package team6.finalproject.domain.content.service;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
-import team6.finalproject.domain.content.dto.ContentCreateRequest;
-import team6.finalproject.domain.content.dto.ContentResponse;
-import team6.finalproject.domain.content.dto.ContentPatchRequest;
-import team6.finalproject.domain.content.dto.CursorResponse;
+import team6.finalproject.domain.content.dto.*;
 import team6.finalproject.domain.content.entity.content.Content;
 import team6.finalproject.domain.content.entity.content.ContentType;
 import team6.finalproject.domain.content.entity.content.SourceType;
@@ -114,4 +110,9 @@ public class AdminContentService {
 			default -> ContentType.MOVIE;
 		};
 	}
+
+    public Content getContentById(Long contentId) {
+        return contentRepository.findById(contentId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 콘텐츠입니다: " + contentId));
+    }
 }

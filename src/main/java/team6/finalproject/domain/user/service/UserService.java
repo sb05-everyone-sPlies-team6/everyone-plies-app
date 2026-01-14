@@ -1,6 +1,5 @@
 package team6.finalproject.domain.user.service;
 
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -89,5 +88,11 @@ public class UserService {
     if (request.locked()) {
       jwtRegistry.invalidateJwtInformationByUserId(userId);
     }
+  }
+
+  @Transactional(readOnly = true)
+  public User getUserByEmail(String email) {
+      return userRepository.findByEmail(email)
+              .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다: " + email));
   }
 }
