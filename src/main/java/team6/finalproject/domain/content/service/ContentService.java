@@ -86,17 +86,15 @@ public class ContentService {
 		return ContentResponse.from(content, getTagNames(content));
 	}
 
+	public Content getContentById(Long contentId) {
+		return contentRepository.findById(contentId)
+			.orElseThrow(() -> new IllegalArgumentException("존재하지 않는 콘텐츠입니다: " + contentId));
+	}
+
 	// 태그 저장 공통 로직
 	private List<String> saveTags(Content content, List<String> tagNames, String contentType) {
 		//기존에 이미 DB에 저장된 태그들 가져옴
 		Set<String> finalTagNames = new LinkedHashSet<>(getTagNames(content));
-
-		/*
-		// 콘텐츠 타입을 태그로 추가 -> 중복 저장?
-		if (contentType != null) {
-			finalTagNames.add(mapToFrontendType(content.getType()));
-		}
-		 */
 
 		//새로운 태그들이 들어온 경우에만 추가
 		if (tagNames != null && !tagNames.isEmpty()) {

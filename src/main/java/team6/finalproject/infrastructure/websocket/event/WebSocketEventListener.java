@@ -12,7 +12,10 @@ import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 import org.springframework.web.socket.messaging.SessionSubscribeEvent;
 import team6.finalproject.domain.content.dto.ContentSummary;
 import team6.finalproject.domain.content.entity.content.Content;
-import team6.finalproject.domain.content.service.AdminContentService;
+import team6.finalproject.domain.content.service.ContentService;
+import team6.finalproject.domain.dm.dto.MessageResponse;
+import team6.finalproject.domain.dm.service.DmService;
+import team6.finalproject.domain.dm.service.SseService;
 import team6.finalproject.domain.user.dto.UserSummary;
 import team6.finalproject.domain.user.entity.User;
 import team6.finalproject.domain.user.service.UserService;
@@ -32,8 +35,9 @@ public class WebSocketEventListener {
 
     private final UserService userService;
     private final SimpMessagingTemplate messagingTemplate;
-    private final AdminContentService contentService;
-
+    private final ContentService contentService;
+    private final DmService dmService;
+    private final SseService sseService;
 
     private final Map<String, Map<String, UserSummary>> watchingUsers = new ConcurrentHashMap<>();
 
@@ -96,7 +100,6 @@ public class WebSocketEventListener {
         messagingTemplate.convertAndSend("/sub/contents/" + contentId + "/watch", newUserJoin);
     }
 
-
     @EventListener
     public void handleSessionDisconnect(SessionDisconnectEvent event) {
         StompHeaderAccessor accessor = StompHeaderAccessor.wrap(event.getMessage());
@@ -132,5 +135,31 @@ public class WebSocketEventListener {
         String[] parts = destination.split("/");
         if (parts.length >= 4) return parts[3]; // /sub/contents/{contentId}/watch
         return null;
+    }
+
+    @EventListener
+    public void handleDmSubscribe(SessionSubscribeEvent event) {
+        StompHeaderAccessor accessor = StompHeaderAccessor.wrap(event.getMessage());
+        String destination = accessor.getDestination();
+
+        if (destination == null || !destination.startsWith("/sub/conversations/")) return;
+        String[] parts = destination.split("/");
+        if (parts.length < 5 || !parts[4].equals("direct-messages")) return;
+
+        Long dmId = Long.parseLong(parts[3]);
+        Principal principal = accessor.getUser();
+
+        if (principal == null) return;
+
+        User user = userService.getUserByEmail(principal.getName());
+
+        dmService.markAllAsRead(dmId, user.getId());
+
+        var response = dmService.getMessages(dmId, null, 1);
+        if (!response.data().isEmpty()) {
+            MessageResponse latest = response.data().get(0);
+
+            sseService.sendDmNotification(user.getId(), latest);
+        }
     }
 }

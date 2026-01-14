@@ -31,6 +31,7 @@ public class DmService {
 	private final DmParticipantRepository dmParticipantRepository;
 	private final MessageRepository messageRepository;
 	private final UserRepository userRepository;
+	private final SseService sseService;
 
 	//대화방 생성 또는 조회
 	@Transactional
@@ -87,14 +88,17 @@ public class DmService {
 
 	//DM 읽음 처리
 	@Transactional
-	public void markAsRead(Long dmId, Long messageId, Long currentUserId) {
-		Message message = messageRepository.findById(messageId)
-			.orElseThrow(() -> new IllegalArgumentException("메시지를 찾을 수 없습니다."));
+	public void markAllAsRead(Long dmId, Long currentUserId) {
+		//DB 업데이트 (0 -> 1)
+		messageRepository.markAllAsRead(dmId, currentUserId);
 
-		// 내가 수신자인 경우에만 읽음 처리
-		if (!message.getUserId().equals(currentUserId)) {
-			message.read(); // is_read = true 변경
+		// 프론트엔드 UI를 강제로 갱신시키기 위한 트리거.. 이거 말고 다른 로직 구상
+		List<MessageResponse> messages = dmRepository.findMessagesByCursor(dmId, null, 1);
+		if (!messages.isEmpty()) {
+			MessageResponse latest = messages.get(0);
+			sseService.sendDmNotification(currentUserId, latest);
 		}
+		sseService.sendReadNotification(currentUserId, dmId);
 	}
 
 	@Transactional

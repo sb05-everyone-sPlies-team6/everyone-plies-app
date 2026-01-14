@@ -17,6 +17,7 @@ import com.querydsl.core.types.dsl.Expressions;
 import team6.finalproject.domain.dm.dto.DmResponse;
 import team6.finalproject.domain.dm.dto.MessageResponse;
 import team6.finalproject.domain.dm.dto.UserSimpleResponse;
+import team6.finalproject.domain.dm.entity.QMessage;
 
 @RequiredArgsConstructor
 public class DmRepositoryImpl implements DmRepositoryCustom {
@@ -25,6 +26,9 @@ public class DmRepositoryImpl implements DmRepositoryCustom {
 
 	@Override
 	public List<DmResponse> findDmListWithLastMessage(Long userId, String cursor, int limit, String keyword) {
+		QMessage latestMsg = new QMessage("latestMsg");
+		QMessage unreadCheck = new QMessage("unreadCheck");
+
 		List<Long> myDmIds = queryFactory
 			.select(dmParticipant.dmId)
 			.from(dmParticipant)
@@ -38,30 +42,33 @@ public class DmRepositoryImpl implements DmRepositoryCustom {
 				dm.id,
 				Projections.constructor(UserSimpleResponse.class,
 					user.id, user.name, user.profileImageUrl),
-				// MessageResponse 내부의 null 처리
+				// 마지막 메시지 매핑
 				Projections.constructor(MessageResponse.class,
-					message.id, message.dmId, message.createdAt,
-					Expressions.nullExpression(UserSimpleResponse.class), // 수정
-					Expressions.nullExpression(UserSimpleResponse.class), // 수정
-					message.content, message.isRead),
+					latestMsg.id, latestMsg.dmId, latestMsg.createdAt,
+					Expressions.nullExpression(UserSimpleResponse.class),
+					Expressions.nullExpression(UserSimpleResponse.class),
+					latestMsg.content,
+					latestMsg.isRead.coalesce(false)),
+				// 읽지 않은 메시지 존재 여부 (unreadCheck 별칭 사용)
 				JPAExpressions.selectOne()
-					.from(message)
-					.where(message.dmId.eq(dm.id)
-						.and(message.userId.ne(userId))
-						.and(message.isRead.isFalse()))
+					.from(unreadCheck)
+					.where(unreadCheck.dmId.eq(dm.id)
+						.and(unreadCheck.userId.ne(userId)) // 내가 보낸 게 아님
+						.and(unreadCheck.isRead.isFalse()))   // 아직 안 읽음
 					.exists()
 			))
 			.from(dm)
 			.join(dmParticipant).on(dmParticipant.dmId.eq(dm.id))
 			.join(user).on(user.id.eq(dmParticipant.userId))
-			.leftJoin(message).on(message.id.eq(
-				JPAExpressions.select(message.id.max())
-					.from(message)
-					.where(message.dmId.eq(dm.id))
+			// 마지막 메시지만 1:1 조인하여 중복 제거
+			.leftJoin(latestMsg).on(latestMsg.id.eq(
+				JPAExpressions.select(unreadCheck.id.max())
+					.from(unreadCheck)
+					.where(unreadCheck.dmId.eq(dm.id))
 			))
 			.where(
 				dm.id.in(myDmIds),
-				dmParticipant.userId.ne(userId),
+				dmParticipant.userId.ne(userId), // 상대방 정보만 추출
 				cursorBefore(cursor),
 				nameContains(keyword)
 			)
@@ -102,8 +109,7 @@ public class DmRepositoryImpl implements DmRepositoryCustom {
 				message.id,
 				message.dmId,
 				message.createdAt,
-				Projections.constructor(UserSimpleResponse.class,
-					user.id, user.name, user.profileImageUrl),
+				Projections.constructor(UserSimpleResponse.class, user.id, user.name, user.profileImageUrl),
 				Expressions.nullExpression(UserSimpleResponse.class),
 				message.content,
 				message.isRead

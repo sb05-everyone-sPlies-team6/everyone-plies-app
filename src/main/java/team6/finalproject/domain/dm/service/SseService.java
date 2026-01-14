@@ -46,4 +46,17 @@ public class SseService {
 			}
 		}
 	}
+
+	public void sendReadNotification(Long userId, Long dmId) {
+		SseEmitter emitter = emitters.get(userId);
+		if (emitter != null) {
+			try {
+				emitter.send(SseEmitter.event()
+					.name("direct-messages-read") // 읽음 처리 전용 이벤트 이름
+					.data(dmId)); // 어떤 방이 읽혔는지 ID 전달
+			} catch (IOException e) {
+				emitters.remove(userId);
+			}
+		}
+	}
 }

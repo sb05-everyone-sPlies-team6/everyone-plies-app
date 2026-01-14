@@ -86,12 +86,11 @@ public class DmController {
 	}
 
 	//DM 읽음 처리
-	@PostMapping("/{dmId}/direct-messages/{messageId}/read")
-	public ResponseEntity<Void> readMessage(
+	@PostMapping("/{conversationId}/direct-messages/{directMessageId}/read")
+	public ResponseEntity<Void> readAllMessages(
 		@AuthenticationPrincipal MoplUserDetails user,
-		@PathVariable Long dmId,
-		@PathVariable Long messageId) {
-		dmService.markAsRead(dmId, messageId, user.getUserDto().id());
+		@PathVariable Long conversationId) {
+		dmService.markAllAsRead(conversationId, user.getUserDto().id());
 		return ResponseEntity.ok().build();
 	}
 }
