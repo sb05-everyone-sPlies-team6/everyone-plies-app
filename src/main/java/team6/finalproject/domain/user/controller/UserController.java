@@ -31,8 +31,8 @@ public class UserController {
   private final UserService userService;
 
   @PostMapping
-  public ResponseEntity<User> create(@RequestBody @Valid UserCreateRequest request) {
-    User user = userService.create(request);
+  public ResponseEntity<UserDto> create(@RequestBody @Valid UserCreateRequest request) {
+    UserDto user = userService.create(request);
     return ResponseEntity.status(HttpStatus.CREATED).body(user);
   }
 
@@ -46,8 +46,8 @@ public class UserController {
   }
 
   @GetMapping("/{userId}")
-  public ResponseEntity<User> findById(@PathVariable Long userId) {
-    User user = userService.findById(userId);
+  public ResponseEntity<UserDto> findById(@PathVariable Long userId) {
+    UserDto user = userService.findById(userId);
     return ResponseEntity.status(HttpStatus.OK).body(user);
   }
 
