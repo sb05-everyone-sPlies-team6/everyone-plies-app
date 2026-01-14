@@ -92,12 +92,7 @@ public class DmService {
 		//DB 업데이트 (0 -> 1)
 		messageRepository.markAllAsRead(dmId, currentUserId);
 
-		// 프론트엔드 UI를 강제로 갱신시키기 위한 트리거.. 이거 말고 다른 로직 구상
-		List<MessageResponse> messages = dmRepository.findMessagesByCursor(dmId, null, 1);
-		if (!messages.isEmpty()) {
-			MessageResponse latest = messages.get(0);
-			sseService.sendDmNotification(currentUserId, latest);
-		}
+		// '나'에게: 내 채팅방 목록의 "빨간 점"을 없애기 위한 신호만 전송
 		sseService.sendReadNotification(currentUserId, dmId);
 	}
 

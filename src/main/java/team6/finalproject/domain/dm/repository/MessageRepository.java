@@ -10,7 +10,7 @@ import org.springframework.data.repository.query.Param;
 import team6.finalproject.domain.dm.entity.Message;
 
 public interface MessageRepository extends JpaRepository<Message, Long>, MessageRepositoryCustom {
-	@Modifying
+	@Modifying(clearAutomatically = true)
 	@Query("UPDATE Message m SET m.isRead = true WHERE m.id = :messageId AND m.dmId = :dmId")
 	void markAsRead(@Param("dmId") Long dmId, @Param("messageId") Long messageId);
 

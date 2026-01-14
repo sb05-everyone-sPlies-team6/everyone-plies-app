@@ -153,13 +153,7 @@ public class WebSocketEventListener {
 
         User user = userService.getUserByEmail(principal.getName());
 
+        // 읽음 처리만 수행
         dmService.markAllAsRead(dmId, user.getId());
-
-        var response = dmService.getMessages(dmId, null, 1);
-        if (!response.data().isEmpty()) {
-            MessageResponse latest = response.data().get(0);
-
-            sseService.sendDmNotification(user.getId(), latest);
-        }
     }
 }
