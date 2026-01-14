@@ -54,19 +54,10 @@ public class FollowService {
     );
 
     Notification saved = notificationRepository.save(notification);
-
-    NotificationDto dto = new NotificationDto(
-        saved.getId(),
-        saved.getCreatedAt(),
-        saved.getUser().getId(),
-        saved.getTitle(),
-        saved.getContent(),
-        saved.getLevel()
-    );
-
+    NotificationDto dto = NotificationDto.from(saved);
     eventPublisher.publishEvent(new NotificationCreatedEvent(dto));
 
-    return new FollowDto(follow.getId(), request.followeeId(), follow.getFollower().getId());
+    return FollowDto.from(follow);
   }
 
 
