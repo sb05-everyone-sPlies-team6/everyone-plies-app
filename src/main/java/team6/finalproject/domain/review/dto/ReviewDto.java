@@ -6,16 +6,16 @@ import team6.finalproject.domain.user.dto.UserSummary;
 import java.util.List;
 
 public record ReviewDto(
-        Long id,
-        Long contentId,
+        String id,
+        String contentId,
         UserSummary author,
         String text,
-        double rating
+        Float rating
 ) {
     public static ReviewDto from(Review review) {
     return new ReviewDto(
-            review.getId(),
-            review.getContent().getContentId(),
+            String.valueOf(review.getId()),
+            String.valueOf(review.getContent().getContentId()),
             UserSummary.from(review.getAuthor()), // UserSummaryMapper 대신
             review.getText(),
             review.getRating()

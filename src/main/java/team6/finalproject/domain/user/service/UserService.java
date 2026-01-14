@@ -1,6 +1,5 @@
 package team6.finalproject.domain.user.service;
 
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -25,7 +24,7 @@ public class UserService {
   private final JwtRegistry jwtRegistry;
 
   @Transactional
-  public User create(UserCreateRequest request) {
+  public UserDto create(UserCreateRequest request) {
 
     if (userRepository.existsByEmail(request.email())) {
       throw new IllegalArgumentException("Email already exists!");
@@ -33,7 +32,8 @@ public class UserService {
 
     User user = new User(request.email(), request.password(), request.name());
 
-    return userRepository.save(user);
+    userRepository.save(user);
+    return UserDto.from(user);
   }
 
   @Transactional(readOnly = true)
@@ -43,12 +43,12 @@ public class UserService {
   }
 
   @Transactional(readOnly = true)
-  public User findById(Long userId) {
+  public UserDto findById(Long userId) {
 
     User user = userRepository.findById(userId)
         .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
-    return user;
+    return UserDto.from(user);
   }
 
   @Transactional
@@ -89,5 +89,11 @@ public class UserService {
     if (request.locked()) {
       jwtRegistry.invalidateJwtInformationByUserId(userId);
     }
+  }
+
+  @Transactional(readOnly = true)
+  public User getUserByEmail(String email) {
+      return userRepository.findByEmail(email)
+              .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다: " + email));
   }
 }
