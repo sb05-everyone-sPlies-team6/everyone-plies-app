@@ -12,7 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import team6.finalproject.domain.dm.dto.DirectMessageSendRequest;
 import team6.finalproject.domain.dm.dto.MessageResponse;
 import team6.finalproject.domain.dm.service.DmService;
-import team6.finalproject.domain.dm.service.SseService;
+import team6.finalproject.domain.sse.SseService;
 import team6.finalproject.domain.user.entity.User;
 import team6.finalproject.domain.user.service.UserService;
 

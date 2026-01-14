@@ -19,6 +19,7 @@ import team6.finalproject.domain.dm.entity.Message;
 import team6.finalproject.domain.dm.repository.DmParticipantRepository;
 import team6.finalproject.domain.dm.repository.MessageRepository;
 import team6.finalproject.domain.dm.repository.DmRepository;
+import team6.finalproject.domain.sse.SseService;
 import team6.finalproject.domain.user.entity.User;
 import team6.finalproject.domain.user.repository.UserRepository;
 
