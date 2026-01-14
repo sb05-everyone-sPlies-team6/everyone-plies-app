@@ -39,7 +39,7 @@ public class FollowService {
 
     followRepository.save(follow);
 
-    return new FollowDto(follow.getId(), request.followeeId(), follow.getFollower().getId());
+    return FollowDto.from(follow);
   }
 
   @Transactional(readOnly = true)
