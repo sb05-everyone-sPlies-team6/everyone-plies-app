@@ -63,7 +63,9 @@ public class SecurityConfig {
             "/api/auth/refresh" ,
             "/api/users",  // 토큰 리프레시도 제외
             "/api/sse",
-            "/api/contents/**",
+            "/api/contents/**", //임시
+            "/api/conversations/**", //임시
+            "/pub/conversations/**", //임시
             "/h2-console/**"
             // "/api/**"
         )

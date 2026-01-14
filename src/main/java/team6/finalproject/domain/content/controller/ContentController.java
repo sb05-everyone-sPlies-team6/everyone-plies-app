@@ -22,14 +22,14 @@ import team6.finalproject.domain.content.dto.ContentCreateRequest;
 import team6.finalproject.domain.content.dto.ContentResponse;
 import team6.finalproject.domain.content.dto.ContentPatchRequest;
 import team6.finalproject.domain.content.dto.CursorResponse;
-import team6.finalproject.domain.content.service.AdminContentService;
+import team6.finalproject.domain.content.service.ContentService;
 
 @RestController
 @RequestMapping("/api/contents")
 @RequiredArgsConstructor
-public class AdminContentController {
+public class ContentController {
 
-	private final AdminContentService adminContentService;
+	private final ContentService contentService;
 
 	// 1. 콘텐츠 목록 조회 (커서 페이지네이션)
 	@GetMapping
@@ -43,7 +43,7 @@ public class AdminContentController {
 		@RequestParam(required = false) String typeEqual,
 		@RequestParam(required = false) String keywordLike) {
 
-		return ResponseEntity.ok(adminContentService.getContents(
+		return ResponseEntity.ok(contentService.getContents(
 			cursor, idAfter, limit, tagsIn, sortBy, sortDirection, typeEqual, keywordLike
 		));
 	}
@@ -58,13 +58,13 @@ public class AdminContentController {
 		// 썸네일 파일 처리 로직은 나중에 S3 연동 시 이 부분에 추가
 		// 지금은 request DTO에 담긴 정보만 사용하여 저장
 		return ResponseEntity.status(HttpStatus.CREATED)
-			.body(adminContentService.createContent(request));
+			.body(contentService.createContent(request));
 	}
 
 	// 3. 콘텐츠 단건 조회
 	@GetMapping("/{contentId}")
 	public ResponseEntity<ContentResponse> getContent(@PathVariable Long contentId) {
-		return ResponseEntity.ok(adminContentService.getContent(contentId));
+		return ResponseEntity.ok(contentService.getContent(contentId));
 	}
 
 	// 4. 어드민 콘텐츠 수정 (PATCH)
@@ -79,13 +79,13 @@ public class AdminContentController {
 		patchRequest.setRequest(request);
 		patchRequest.setThumbnail(thumbnail);
 
-		return ResponseEntity.ok(adminContentService.patchContent(contentId, patchRequest));
+		return ResponseEntity.ok(contentService.patchContent(contentId, patchRequest));
 	}
 
 	// 5. 어드민 콘텐츠 삭제
 	@DeleteMapping("/{contentId}")
 	public ResponseEntity<Void> deleteContent(@PathVariable Long contentId) {
-		adminContentService.deleteContent(contentId);
+		contentService.deleteContent(contentId);
 		return ResponseEntity.ok().build(); //200성공
 	}
 }

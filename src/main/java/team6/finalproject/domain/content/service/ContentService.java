@@ -25,7 +25,7 @@ import team6.finalproject.domain.content.repository.TagRepository;
 @Service
 @RequiredArgsConstructor
 @Transactional
-public class AdminContentService {
+public class ContentService {
 
 	private final ContentRepository contentRepository;
 	private final ContentTagRepository contentTagRepository;
