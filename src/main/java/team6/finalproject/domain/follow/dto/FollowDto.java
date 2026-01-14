@@ -14,5 +14,4 @@ public record FollowDto(
         follow.getFollower().getId()
     );
   }
-
 }
