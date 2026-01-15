@@ -35,7 +35,7 @@ public class ContentController {
 	@GetMapping
 	public ResponseEntity<CursorResponse<ContentResponse>> getContents(
 		@RequestParam(required = false) String cursor,     // Long -> String
-		@RequestParam(required = false) UUID idAfter,       // idAfter 추가
+		@RequestParam(required = false) String idAfter,       // idAfter 추가
 		@RequestParam(defaultValue = "10") int limit,
 		@RequestParam(required = false) List<String> tagsIn, // tagsIn 추가
 		@RequestParam(required = false) String sortBy,

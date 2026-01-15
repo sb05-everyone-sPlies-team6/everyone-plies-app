@@ -8,7 +8,7 @@ import team6.finalproject.domain.content.entity.content.Content;
 public interface ContentRepositoryCustom {
 	List<Content> findAllByCursor(
 		String cursor,
-		UUID idAfter,
+		String idAfter,
 		int limit,
 		List<String> tagsIn,
 		String sortBy,
