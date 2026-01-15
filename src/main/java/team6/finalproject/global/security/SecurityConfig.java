@@ -1,8 +1,6 @@
 package team6.finalproject.global.security;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Arrays;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,7 +15,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.Http403ForbiddenEntryPoint;
@@ -63,7 +60,9 @@ public class SecurityConfig {
             "/api/auth/refresh" ,
             "/api/users",  // 토큰 리프레시도 제외
             "/api/sse",
-            "/api/contents/**",
+            "/api/contents/**", //임시
+            "/api/conversations/**", //임시
+            "/pub/conversations/**", //임시
             "/h2-console/**"
             // "/api/**"
         )

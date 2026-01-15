@@ -27,6 +27,7 @@ public class Notification {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @Column(name = "notification_id")
   private Long id;
 
   @ManyToOne (fetch = FetchType.LAZY)
@@ -56,11 +57,14 @@ public class Notification {
   @Column(name = "target_type")
   private TargetType targetType;
 
-  public Notification(User user, String title, String content, Level level) {
+  public Notification(User user, String title, String content, Level level, Long targetId, TargetType targetType) {
     this.user = user;
     this.title = title;
     this.content = content;
     this.level = level;
+    this.targetId = targetId;      // 필수값 추가
+    this.targetType = targetType;  // 필수값
+    this.isRead = false;           // 기본값 설정
     this.createdAt = LocalDateTime.now();
   }
 }
