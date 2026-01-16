@@ -1,12 +1,16 @@
 package team6.finalproject.domain.content.service;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import lombok.RequiredArgsConstructor;
+import team6.finalproject.domain.common.S3Folder;
+import team6.finalproject.domain.common.S3Service;
 import team6.finalproject.domain.content.dto.ContentCreateRequest;
 import team6.finalproject.domain.content.dto.ContentResponse;
 import team6.finalproject.domain.content.dto.ContentPatchRequest;
@@ -28,6 +32,7 @@ public class ContentService {
 	private final ContentRepository contentRepository;
 	private final ContentTagRepository contentTagRepository;
 	private final TagRepository tagRepository;
+	private final S3Service s3Service;
 
 	public CursorResponse<ContentResponse> getContents(
 		String cursor, String idAfter, int limit, List<String> tagsIn,
@@ -129,12 +134,17 @@ public class ContentService {
 			.toList();
 	}
 
-	public ContentResponse createContent(ContentCreateRequest dto) {
+	public ContentResponse createContent(ContentCreateRequest dto, MultipartFile file) throws IOException{
+		String thumbnailUrl = dto.getThumbnailUrl();
+		if(file != null && !file.isEmpty()){
+			thumbnailUrl = s3Service.upload(file, S3Folder.CONTENTS.name().toLowerCase());
+		}
+
 		Content content = Content.builder()
 			.title(dto.getTitle())
 			.type(mapToEnum(dto.getType()))
 			.description(dto.getDescription())
-			.thumbnailUrl(dto.getThumbnailUrl())
+			.thumbnailUrl(thumbnailUrl)
 			.externalId(java.util.UUID.randomUUID().toString())
 			.sourceType(SourceType.MANUAL)
 			.build();
@@ -146,9 +156,18 @@ public class ContentService {
 	}
 
 	@Transactional
-	public ContentResponse patchContent(Long contentId, ContentPatchRequest dto) {
+	public ContentResponse patchContent(Long contentId, ContentPatchRequest dto, MultipartFile file) throws
+		IOException {
 		Content content = contentRepository.findById(contentId)
 			.orElseThrow(() -> new RuntimeException("Content not found"));
+
+		if(file != null && !file.isEmpty()){
+			String newThumbnailUrl = s3Service.upload(file, S3Folder.CONTENTS.name().toLowerCase());
+			content.updateThumbnailUrl(newThumbnailUrl);
+		} else if (dto.getThumbnail() != null) {
+			//파일없이 텍스트만 들어온 경우 로직 유지
+			content.updateThumbnailUrl(dto.getThumbnail());
+		}
 
 		if (dto.getRequest() != null) {
 			ContentPatchRequest.PatchDetail detail = dto.getRequest();
@@ -158,10 +177,6 @@ public class ContentService {
 			if (detail.getTags() != null) {
 				syncTags(content, detail.getTags()); // 기존꺼 지우고 새로 저장
 			}
-		}
-
-		if (dto.getThumbnail() != null) {
-			content.updateThumbnailUrl(dto.getThumbnail());
 		}
 
 		return ContentResponse.from(content, getTagNames(content));
