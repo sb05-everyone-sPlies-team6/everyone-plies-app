@@ -35,7 +35,7 @@ public class User {
   @Column(name = "name", nullable = false)
   private String name;
 
-  @Column(name = "profile_image")
+  @Column(name = "profile_image", length = 2048)
   private String profileImageUrl;
 
   @Enumerated(EnumType.STRING)
@@ -75,6 +75,14 @@ public class User {
 
   public void changeLock(boolean locked) {
     this.locked = locked;
+    this.updatedAt = LocalDateTime.now();
+  }
+
+  public void updateProfile(String name, String profileImageUrl) {
+    if (name != null && !this.name.equals(name)) this.name = name;
+    if (profileImageUrl != null && !profileImageUrl.equals(this.profileImageUrl)) {
+      this.profileImageUrl = profileImageUrl;
+    }
     this.updatedAt = LocalDateTime.now();
   }
 }
