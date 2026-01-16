@@ -50,8 +50,6 @@
 
 도메인을 기반으로 하여 각 기능의 응집도를 높였습니다.
 
-Plaintext
-
 ```yaml
 src/main/java/com/mopl/api/
 ├── global/                # 공통 설정 (Security, Exception, JWT)

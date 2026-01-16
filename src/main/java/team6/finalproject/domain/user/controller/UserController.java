@@ -55,11 +55,17 @@ public class UserController {
     return ResponseEntity.status(HttpStatus.OK).body(all);
   }
 
-  @GetMapping("/{userId}")
-  public ResponseEntity<UserDto> findById(@PathVariable Long userId) {
-    UserDto user = userService.findById(userId);
-    return ResponseEntity.status(HttpStatus.OK).body(user);
-  }
+//  @GetMapping("/{userId}")
+//  public ResponseEntity<UserDto> findById(@PathVariable Long userId) {
+//    UserDto user = userService.findById(userId);
+//    return ResponseEntity.status(HttpStatus.OK).body(user);
+//  }
+
+    @GetMapping("/{userId}")
+    public ResponseEntity<UserProfileResponse> getUserProfile(@PathVariable Long userId) {
+        UserProfileResponse response = userService.findByIdForProfile(userId);
+        return ResponseEntity.ok(response);
+    }
 
   @PatchMapping(value="/{userId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   public ResponseEntity<UserDto> update(@PathVariable Long userId,

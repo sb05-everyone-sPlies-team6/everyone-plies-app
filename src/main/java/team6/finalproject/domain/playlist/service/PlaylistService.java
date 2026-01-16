@@ -8,6 +8,7 @@ import team6.finalproject.domain.content.repository.ContentRepository;
 import team6.finalproject.domain.playlist.dto.CursorResponsePlaylistDto;
 import team6.finalproject.domain.playlist.dto.PlaylistDto;
 import team6.finalproject.domain.playlist.dto.PlaylistCreateRequest;
+import team6.finalproject.domain.playlist.dto.PlaylistUpdateRequest;
 import team6.finalproject.domain.playlist.entity.Playlist;
 import team6.finalproject.domain.playlist.entity.PlaylistContent;
 import team6.finalproject.domain.playlist.entity.PlaylistSubscription;
@@ -162,7 +163,27 @@ public class PlaylistService {
     }
 
     @Transactional
-    public void removeContentFromPlaylist(Long playlistId, Long contentId) {
+    public void deletePlaylist(Long playlistId, Long currentUserId) {
+        Playlist playlist = playlistRepository.findById(playlistId)
+                .orElseThrow(() -> new IllegalArgumentException("플레이리스트를 찾을 수 없습니다."));
+
+        // 작성자 체크
+        if (!playlist.getOwner().getId().equals(currentUserId)) {
+            throw new SecurityException("플레이리스트 작성자만 삭제할 수 있습니다.");
+        }
+
+        playlistRepository.delete(playlist); // JPA에서 delete
+    }
+
+    @Transactional
+    public void removeContentFromPlaylist(Long playlistId, Long contentId, Long currentUserId) {
+        Playlist playlist = playlistRepository.findById(playlistId)
+                .orElseThrow(() -> new IllegalArgumentException("플레이리스트를 찾을 수 없습니다."));
+
+        if (!playlist.getOwner().getId().equals(currentUserId)) {
+            throw new SecurityException("플레이리스트 작성자만 콘텐츠를 삭제할 수 있습니다.");
+        }
+
         playlistContentRepository.findByPlaylistIdAndContentId(playlistId, contentId)
                 .ifPresent(playlistContentRepository::delete);
     }
@@ -191,5 +212,20 @@ public class PlaylistService {
                             .orElseThrow(() -> new IllegalArgumentException("플레이리스트를 찾을 수 없습니다."));
                     playlist.setTotalSubscription(Math.max(0, playlist.getTotalSubscription() - 1));
                 });
+    }
+
+
+    @Transactional
+    public void updatePlaylist(Long playlistId, Long userId, PlaylistUpdateRequest request) {
+
+        Playlist playlist = playlistRepository.findById(playlistId)
+                .orElseThrow(() -> new IllegalArgumentException("플레이리스트를 찾을 수 없습니다."));
+
+        if (!playlist.getOwner().getId().equals(userId)) {
+            throw new SecurityException("플레이리스트 작성자만 수정할 수 있습니다.");
+        }
+
+        if (request.title() != null) playlist.setTitle(request.title());
+        if (request.description() != null) playlist.setDescription(request.description());
     }
 }

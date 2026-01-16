@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import team6.finalproject.domain.playlist.dto.CursorResponsePlaylistDto;
 import team6.finalproject.domain.playlist.dto.PlaylistCreateRequest;
 import team6.finalproject.domain.playlist.dto.PlaylistDto;
+import team6.finalproject.domain.playlist.dto.PlaylistUpdateRequest;
 import team6.finalproject.domain.playlist.service.PlaylistService;
 import team6.finalproject.global.security.MoplUserDetails;
 
@@ -51,21 +52,31 @@ public class PlaylistController {
         return ResponseEntity.ok().build();
     }
 
+    @DeleteMapping("/{playlistId}")
+    public ResponseEntity<Void> deletePlaylist(
+            @PathVariable Long playlistId,
+            @AuthenticationPrincipal MoplUserDetails userDetails
+    ) {
+        playlistService.deletePlaylist(
+                playlistId,
+                userDetails.getUserDto().id()
+        );
+        return ResponseEntity.noContent().build();
+    }
+
     @DeleteMapping("/{playlistId}/contents/{contentId}")
-    public ResponseEntity<Void> removeContentFromPlaylist(
+    public ResponseEntity<Void> removeContent(
             @PathVariable Long playlistId,
             @PathVariable Long contentId,
             @AuthenticationPrincipal MoplUserDetails userDetails
     ) {
-        Long userId = userDetails.getUserDto().id();
+        playlistService.removeContentFromPlaylist(
+                playlistId,
+                contentId,
+                userDetails.getUserDto().id()
+        );
 
-        PlaylistDto playlist = playlistService.getPlaylistById(playlistId, userId);
-        if (!playlist.owner().userId().equals(String.valueOf(userId))) {
-            return ResponseEntity.status(403).build();
-        }
-
-        playlistService.removeContentFromPlaylist(playlistId, contentId);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/{playlistId}")
@@ -99,5 +110,19 @@ public class PlaylistController {
         Long userId = Long.valueOf(userDetails.getUserDto().id());
         playlistService.unsubscribePlaylist(playlistIdLong, userId);
         return ResponseEntity.ok().build();
+    }
+
+    @PatchMapping("/{playlistId}")
+    public ResponseEntity<Void> updatePlaylist(
+            @PathVariable String playlistId,
+            @RequestBody PlaylistUpdateRequest request,
+            @AuthenticationPrincipal MoplUserDetails userDetails
+    ) {
+        playlistService.updatePlaylist(
+                Long.valueOf(playlistId),
+                userDetails.getUserDto().id(),
+                request
+        );
+        return ResponseEntity.noContent().build();
     }
 }
