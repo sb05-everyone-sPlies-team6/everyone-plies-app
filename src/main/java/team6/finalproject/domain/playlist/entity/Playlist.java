@@ -5,6 +5,8 @@ import lombok.*;
 import team6.finalproject.domain.user.entity.User;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "playlists")
@@ -40,6 +42,9 @@ public class Playlist {
 
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
+
+    @OneToMany(mappedBy = "playlist", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<PlaylistContent> contents = new ArrayList<>();
 
     public static Playlist create(Long userId, String title, String description) {
         Playlist p = new Playlist();

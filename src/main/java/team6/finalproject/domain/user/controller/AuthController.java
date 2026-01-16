@@ -1,7 +1,6 @@
 package team6.finalproject.domain.user.controller;
 
 import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import team6.finalproject.domain.user.dto.JwtDto;
 import team6.finalproject.domain.user.dto.JwtInformation;
+import team6.finalproject.domain.user.dto.JwtUserResponse;
 import team6.finalproject.domain.user.service.AuthService;
 import team6.finalproject.global.security.jwt.JwtTokenProvider;
 
@@ -48,7 +48,9 @@ public class AuthController {
     Cookie cookie = jwtTokenProvider.generateRefreshTokenCookie(jwtInformation.getRefreshToken());
     response.addCookie(cookie);
 
-    JwtDto body = new JwtDto(jwtInformation.getUserDto(), jwtInformation.getAccessToken());
+      JwtUserResponse userResponse = JwtUserResponse.from(jwtInformation.getUserDto());
+
+      JwtDto body = new JwtDto(userResponse, jwtInformation.getAccessToken());
     return ResponseEntity.ok(body);
   }
 }

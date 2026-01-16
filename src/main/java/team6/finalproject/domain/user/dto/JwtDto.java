@@ -1,7 +1,7 @@
 package team6.finalproject.domain.user.dto;
 
 public record JwtDto (
-  UserDto userDto,
+  JwtUserResponse userDto,
   String accessToken
 ) {
 
