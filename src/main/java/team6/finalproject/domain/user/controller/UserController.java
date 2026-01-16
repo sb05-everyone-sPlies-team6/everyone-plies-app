@@ -1,7 +1,6 @@
 package team6.finalproject.domain.user.controller;
 
 import jakarta.validation.Valid;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,14 +12,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import team6.finalproject.domain.user.dto.CursorResponse;
-import team6.finalproject.domain.user.dto.PasswordChangeRequest;
-import team6.finalproject.domain.user.dto.UserCreateRequest;
-import team6.finalproject.domain.user.dto.UserDto;
-import team6.finalproject.domain.user.dto.UserLockUpdateRequest;
-import team6.finalproject.domain.user.dto.UserRoleUpdateRequest;
+import team6.finalproject.domain.user.dto.*;
 import team6.finalproject.domain.user.entity.Role;
-import team6.finalproject.domain.user.entity.User;
 import team6.finalproject.domain.user.service.UserService;
 
 @RestController
@@ -45,11 +38,17 @@ public class UserController {
     return ResponseEntity.status(HttpStatus.OK).body(all);
   }
 
-  @GetMapping("/{userId}")
-  public ResponseEntity<UserDto> findById(@PathVariable Long userId) {
-    UserDto user = userService.findById(userId);
-    return ResponseEntity.status(HttpStatus.OK).body(user);
-  }
+//  @GetMapping("/{userId}")
+//  public ResponseEntity<UserDto> findById(@PathVariable Long userId) {
+//    UserDto user = userService.findById(userId);
+//    return ResponseEntity.status(HttpStatus.OK).body(user);
+//  }
+
+    @GetMapping("/{userId}")
+    public ResponseEntity<UserProfileResponse> getUserProfile(@PathVariable Long userId) {
+        UserProfileResponse response = userService.findByIdForProfile(userId);
+        return ResponseEntity.ok(response);
+    }
 
   @PreAuthorize("hasRole('ADMIN')")
   @PatchMapping("{userId}/role")

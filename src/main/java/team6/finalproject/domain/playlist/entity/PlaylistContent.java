@@ -28,6 +28,10 @@ public class PlaylistContent {
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "playlist_id", insertable = false, updatable = false)
+    private Playlist playlist;
+
     public PlaylistContent(Long playlistId, Long contentId) {
         this.playlistId = playlistId;
         this.contentId = contentId;

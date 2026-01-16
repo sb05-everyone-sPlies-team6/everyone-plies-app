@@ -5,12 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
-import team6.finalproject.domain.user.dto.CursorResponse;
-import team6.finalproject.domain.user.dto.PasswordChangeRequest;
-import team6.finalproject.domain.user.dto.UserCreateRequest;
-import team6.finalproject.domain.user.dto.UserDto;
-import team6.finalproject.domain.user.dto.UserLockUpdateRequest;
-import team6.finalproject.domain.user.dto.UserRoleUpdateRequest;
+import team6.finalproject.domain.user.dto.*;
 import team6.finalproject.domain.user.entity.Role;
 import team6.finalproject.domain.user.entity.User;
 import team6.finalproject.domain.user.repository.UserRepository;
@@ -42,14 +37,14 @@ public class UserService {
     return userRepository.findAll(emailLike,  role, isLocked, cursor, idAfter, limit, sortDirection, sortBy);
   }
 
-  @Transactional(readOnly = true)
-  public UserDto findById(Long userId) {
+    @Transactional(readOnly = true)
+    public UserProfileResponse findByIdForProfile(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
-    User user = userRepository.findById(userId)
-        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
-
-    return UserDto.from(user);
-  }
+        UserDto userDto = UserDto.from(user);
+        return UserProfileResponse.from(userDto); // 프론트용 String id
+    }
 
   @Transactional
   public void changePassword(Long userId, PasswordChangeRequest request) {

@@ -26,4 +26,9 @@ public record UserDto(
     );
   }
 
+    // 프론트용 String ID
+    public String idAsString() {
+        return String.valueOf(id);
+    }
+
 }

@@ -9,11 +9,11 @@ import java.io.IOException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 import team6.finalproject.domain.user.dto.JwtDto;
 import team6.finalproject.domain.user.dto.JwtInformation;
+import team6.finalproject.domain.user.dto.JwtUserResponse;
 import team6.finalproject.global.security.MoplUserDetails;
 import team6.finalproject.global.security.dto.ErrorResponse;
 
@@ -42,7 +42,9 @@ public class JwtLoginSuccessHandler implements AuthenticationSuccessHandler {
         Cookie refreshCookie = jwtTokenProvider.generateRefreshTokenCookie(refreshToken);
         response.addCookie(refreshCookie);
 
-        JwtDto jwtDto = new JwtDto(userDetails.getUserDto(), accessToken);
+          JwtUserResponse userResponse = JwtUserResponse.from(userDetails.getUserDto());
+
+          JwtDto jwtDto = new JwtDto(userResponse, accessToken);
         response.setStatus(HttpServletResponse.SC_OK);
         response.getWriter().write(objectMapper.writeValueAsString(jwtDto));
 
