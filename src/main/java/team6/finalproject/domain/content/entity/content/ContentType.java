@@ -1,5 +1,8 @@
 package team6.finalproject.domain.content.entity.content;
 
+import lombok.Getter;
+
+@Getter
 public enum ContentType {
 	MOVIE("영화"),
 	DRAMA("TV시리즈"),

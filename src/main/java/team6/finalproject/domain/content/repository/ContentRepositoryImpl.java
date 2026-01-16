@@ -1,7 +1,6 @@
 package team6.finalproject.domain.content.repository;
 
 import java.util.List;
-import java.util.UUID;
 
 import com.querydsl.core.types.Order;
 
@@ -23,7 +22,7 @@ public class ContentRepositoryImpl implements ContentRepositoryCustom {
 	@Override
 	public List<Content> findAllByCursor(
 		String cursor,
-		UUID idAfter,
+		String idAfter,
 		int limit,
 		List<String> tagsIn,
 		String sortBy,
@@ -36,14 +35,14 @@ public class ContentRepositoryImpl implements ContentRepositoryCustom {
 		QTag tag = QTag.tag;
 
 		return queryFactory.selectFrom(content)
-			.distinct() // 태그 조인 시 발생하는 데이터 중복 제거
+			.distinct()
 			.leftJoin(contentTag).on(contentTag.content.eq(content))
 			.leftJoin(tag).on(contentTag.tag.eq(tag))
 			.where(
-				cursorCondition(cursor, idAfter, sortBy, sortDirection), // 문자열 커서 조건
+				cursorCondition(cursor, idAfter, sortBy, sortDirection), // 수정된 메서드 호출
 				eqType(typeEqual),
 				containsKeyword(keywordLike),
-				inTags(tagsIn) // [추가] 태그 필터 조건
+				inTags(tagsIn)
 			)
 			.orderBy(getOrderSpecifier(sortBy, sortDirection))
 			.limit(limit + 1)
@@ -58,13 +57,21 @@ public class ContentRepositoryImpl implements ContentRepositoryCustom {
 	}
 
 	// 커서 조건 처리 (String 타입을 Long으로 변환)
-	private BooleanExpression cursorCondition(String cursor, UUID idAfter, String sortBy, String sortDirection) {
+	private BooleanExpression cursorCondition(String cursor, String idAfter, String sortBy, String sortDirection) {
 		if (cursor == null || cursor.isBlank()) return null;
+
+		QContent content = QContent.content;
 
 		try {
 			long cursorId = Long.parseLong(cursor);
-			// 기본적으로 contentId 기준 내림차순(DESC)일 경우 lt(less than) 사용
-			return QContent.content.contentId.lt(cursorId);
+
+			//기본 정렬(최신순 등 ID 기반)일 때
+			if (sortBy == null || sortBy.equals("createdAt") || sortBy.equals("contentId")) {
+				return content.contentId.lt(cursorId);
+			}
+
+			return content.contentId.lt(cursorId);
+
 		} catch (NumberFormatException e) {
 			return null;
 		}

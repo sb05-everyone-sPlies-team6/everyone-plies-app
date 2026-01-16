@@ -17,7 +17,6 @@ public class SportsDbItemProcessor implements ItemProcessor<SportsDbEventRespons
 
 	@Override
 	public ContentBatchDto process(SportsDbEventResponse.EventDto dto) {
-		// 1. 엔티티 생성
 		Content content = Content.builder()
 			.title(dto.getStrEvent())
 			.type(ContentType.SPORTS)
@@ -27,11 +26,9 @@ public class SportsDbItemProcessor implements ItemProcessor<SportsDbEventRespons
 			.sourceType(SourceType.THE_SPORTS_DB)
 			.build();
 
-		// 2. 태그 리스트 생성 (요구사항 반영)
 		List<String> tags = new ArrayList<>();
-		tags.add("스포츠"); // 타입
-		tags.add(translateSport(dto.getStrSport())); // 종목 (한글화)
-		tags.add(dto.getStrVenue() != null ? dto.getStrVenue() : "경기장 정보 없음"); // 경기장
+		tags.add(translateSport(dto.getStrSport()));
+		tags.add(dto.getStrVenue() != null ? dto.getStrVenue() : "경기장 정보 없음");
 
 		return new ContentBatchDto(content, tags);
 	}

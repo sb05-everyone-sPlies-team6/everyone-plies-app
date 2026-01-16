@@ -1,14 +1,16 @@
 package team6.finalproject.domain.content.service;
 
+import java.io.IOException;
 import java.util.ArrayList;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import lombok.RequiredArgsConstructor;
+import team6.finalproject.domain.common.S3Folder;
+import team6.finalproject.domain.common.S3Service;
 import team6.finalproject.domain.content.dto.ContentCreateRequest;
 import team6.finalproject.domain.content.dto.ContentResponse;
 import team6.finalproject.domain.content.dto.ContentPatchRequest;
@@ -30,9 +32,10 @@ public class ContentService {
 	private final ContentRepository contentRepository;
 	private final ContentTagRepository contentTagRepository;
 	private final TagRepository tagRepository;
+	private final S3Service s3Service;
 
 	public CursorResponse<ContentResponse> getContents(
-		String cursor, java.util.UUID idAfter, int limit, List<String> tagsIn,
+		String cursor, String idAfter, int limit, List<String> tagsIn,
 		String sortBy, String sortDirection, String typeEqual, String keywordLike) {
 
 		Long cursorLong = null;
@@ -83,7 +86,14 @@ public class ContentService {
 		Content content = contentRepository.findById(contentId)
 			.orElseThrow(() -> new RuntimeException("콘텐츠를 찾을 수 없습니다."));
 
-		return ContentResponse.from(content, getTagNames(content));
+		List<String> dbTags = getTagNames(content);
+		List<String> displayTags = new ArrayList<>();
+
+		//유형 태그를 첫 번째에 추가
+		//displayTags.add(content.getType().getDescription());
+		displayTags.addAll(dbTags);
+
+		return ContentResponse.from(content, displayTags);
 	}
 
 	public Content getContentById(Long contentId) {
@@ -91,33 +101,30 @@ public class ContentService {
 			.orElseThrow(() -> new IllegalArgumentException("존재하지 않는 콘텐츠입니다: " + contentId));
 	}
 
-	// 태그 저장 공통 로직
-	private List<String> saveTags(Content content, List<String> tagNames, String contentType) {
-		//기존에 이미 DB에 저장된 태그들 가져옴
-		Set<String> finalTagNames = new LinkedHashSet<>(getTagNames(content));
+	private void syncTags(Content content, List<String> tagNames) {
+		//기존 매핑 삭제
+		contentTagRepository.deleteByContent(content);
 
-		//새로운 태그들이 들어온 경우에만 추가
-		if (tagNames != null && !tagNames.isEmpty()) {
-			for (String name : tagNames) {
-				if (name == null || name.isBlank()) continue;
-				String[] splitNames = name.split(",");
-				for (String splitName : splitNames) {
-					finalTagNames.add(splitName.trim());
+		if (tagNames == null || tagNames.isEmpty()) return;
+
+		//새로운 태그들만 깔끔하게 저장
+		for (String name : tagNames) {
+			if (name == null || name.isBlank()) continue;
+
+			// 콤마로 들어올 경우를 대비한 처리 (관리자 수동 입력 대응)
+			String[] splitNames = name.split(",");
+			for (String splitName : splitNames) {
+				String trimmedName = splitName.trim();
+				if (trimmedName.isEmpty()) continue;
+
+				Tag tag = tagRepository.findByName(trimmedName)
+					.orElseGet(() -> tagRepository.save(new Tag(trimmedName)));
+
+				if (!contentTagRepository.existsByContentAndTag(content, tag)) {
+					contentTagRepository.save(new ContentTag(content, tag));
 				}
 			}
 		}
-
-		// DB 저장
-		for (String tagName : finalTagNames) {
-			Tag tag = tagRepository.findByName(tagName)
-				.orElseGet(() -> tagRepository.save(new Tag(tagName)));
-
-			if (!contentTagRepository.existsByContentAndTag(content, tag)) {
-				contentTagRepository.save(new ContentTag(content, tag));
-			}
-		}
-
-		return new ArrayList<>(finalTagNames);
 	}
 
 	// 특정 콘텐츠의 태그 리스트 조회 로직
@@ -127,44 +134,49 @@ public class ContentService {
 			.toList();
 	}
 
-	public ContentResponse createContent(ContentCreateRequest dto) {
+	public ContentResponse createContent(ContentCreateRequest dto, MultipartFile file) throws IOException{
+		String thumbnailUrl = dto.getThumbnailUrl();
+		if(file != null && !file.isEmpty()){
+			thumbnailUrl = s3Service.upload(file, S3Folder.CONTENTS.name().toLowerCase());
+		}
+
 		Content content = Content.builder()
 			.title(dto.getTitle())
 			.type(mapToEnum(dto.getType()))
 			.description(dto.getDescription())
-			.thumbnailUrl(dto.getThumbnailUrl())
-			.externalId(dto.getId() != null ? dto.getId() : java.util.UUID.randomUUID().toString())
+			.thumbnailUrl(thumbnailUrl)
+			.externalId(java.util.UUID.randomUUID().toString())
 			.sourceType(SourceType.MANUAL)
 			.build();
 
 		Content saved = contentRepository.save(content);
+		syncTags(saved, dto.getTags()); // 개선된 싱크 로직 사용
 
-		List<String> allTags = saveTags(saved, dto.getTags(), dto.getType());
-		return ContentResponse.from(saved, allTags);
+		return ContentResponse.from(saved, getTagNames(saved));
 	}
 
 	@Transactional
-	public ContentResponse patchContent(Long contentId, ContentPatchRequest dto) {
+	public ContentResponse patchContent(Long contentId, ContentPatchRequest dto, MultipartFile file) throws
+		IOException {
 		Content content = contentRepository.findById(contentId)
 			.orElseThrow(() -> new RuntimeException("Content not found"));
-		System.out.println(dto.getRequest().getTitle());
 
-		// 중첩된 request 객체 내부 값 처리
+		if(file != null && !file.isEmpty()){
+			String newThumbnailUrl = s3Service.upload(file, S3Folder.CONTENTS.name().toLowerCase());
+			content.updateThumbnailUrl(newThumbnailUrl);
+		} else if (dto.getThumbnail() != null) {
+			//파일없이 텍스트만 들어온 경우 로직 유지
+			content.updateThumbnailUrl(dto.getThumbnail());
+		}
+
 		if (dto.getRequest() != null) {
 			ContentPatchRequest.PatchDetail detail = dto.getRequest();
 			if (detail.getTitle() != null) content.updateTitle(detail.getTitle());
 			if (detail.getDescription() != null) content.updateDescription(detail.getDescription());
 
 			if (detail.getTags() != null) {
-				contentTagRepository.deleteByContent(content);
-				// 새로운 태그 리스트로 다시 저장
-				saveTags(content, detail.getTags(), null);
+				syncTags(content, detail.getTags()); // 기존꺼 지우고 새로 저장
 			}
-		}
-
-		// 평면 구조의 thumbnail 처리
-		if (dto.getThumbnail() != null) {
-			content.updateThumbnailUrl(dto.getThumbnail());
 		}
 
 		return ContentResponse.from(content, getTagNames(content));

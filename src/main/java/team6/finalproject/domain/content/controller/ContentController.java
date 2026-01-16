@@ -1,7 +1,7 @@
 package team6.finalproject.domain.content.controller;
 
+import java.io.IOException;
 import java.util.List;
-import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -31,11 +32,11 @@ public class ContentController {
 
 	private final ContentService contentService;
 
-	// 1. 콘텐츠 목록 조회 (커서 페이지네이션)
+	//콘텐츠 목록 조회 (커서 페이지네이션)
 	@GetMapping
 	public ResponseEntity<CursorResponse<ContentResponse>> getContents(
 		@RequestParam(required = false) String cursor,     // Long -> String
-		@RequestParam(required = false) UUID idAfter,       // idAfter 추가
+		@RequestParam(required = false) String idAfter,       // idAfter 추가
 		@RequestParam(defaultValue = "10") int limit,
 		@RequestParam(required = false) List<String> tagsIn, // tagsIn 추가
 		@RequestParam(required = false) String sortBy,
@@ -47,42 +48,37 @@ public class ContentController {
 			cursor, idAfter, limit, tagsIn, sortBy, sortDirection, typeEqual, keywordLike
 		));
 	}
-	// 2. 콘텐츠 생성 (어드민)
+	//콘텐츠 생성 (어드민)
 	@PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ResponseEntity<ContentResponse> createContent(
-		// JSON 데이터를 'request'라는 파트 받는다.
 		@RequestPart("request") @Valid ContentCreateRequest request,
-		// 파일 데이터는 'thumbnail' 파트로 받되, 없어도(null) 통과되게 한다. (s3연결 전)
-		@RequestPart(value = "thumbnail", required = false) org.springframework.web.multipart.MultipartFile file) {
+		@RequestPart(value = "thumbnail", required = false) MultipartFile file) throws IOException {
 
-		// 썸네일 파일 처리 로직은 나중에 S3 연동 시 이 부분에 추가
-		// 지금은 request DTO에 담긴 정보만 사용하여 저장
+		// 서비스 메서드 규격에 맞춰 request와 file 전달
 		return ResponseEntity.status(HttpStatus.CREATED)
-			.body(contentService.createContent(request));
+			.body(contentService.createContent(request, file));
 	}
 
-	// 3. 콘텐츠 단건 조회
+	//콘텐츠 단건 조회
 	@GetMapping("/{contentId}")
 	public ResponseEntity<ContentResponse> getContent(@PathVariable Long contentId) {
 		return ResponseEntity.ok(contentService.getContent(contentId));
 	}
 
-	// 4. 어드민 콘텐츠 수정 (PATCH)
+	//어드민 콘텐츠 수정 (PATCH)
 	@PatchMapping(value = "/{contentId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ResponseEntity<ContentResponse> patchContent(
 		@PathVariable Long contentId,
-		@RequestPart("request") ContentPatchRequest.PatchDetail request, // JSON 파트 처리
-		@RequestPart(value = "thumbnail", required = false) String thumbnail) {
+		@RequestPart("request") ContentPatchRequest.PatchDetail detail, // 파라미터명을 detail로 변경하여 혼동 방지
+		@RequestPart(value = "thumbnail", required = false) MultipartFile file) throws IOException {
 
-		// 프론트 명세대로 request 객체와 thumbnail 스트링을 따로 받습니다.
 		ContentPatchRequest patchRequest = new ContentPatchRequest();
-		patchRequest.setRequest(request);
-		patchRequest.setThumbnail(thumbnail);
+		patchRequest.setRequest(detail); // 내부 Detail 설정
 
-		return ResponseEntity.ok(contentService.patchContent(contentId, patchRequest));
+		return ResponseEntity.ok(contentService.patchContent(contentId, patchRequest, file));
 	}
 
-	// 5. 어드민 콘텐츠 삭제
+	//어드민 콘텐츠 삭제
 	@DeleteMapping("/{contentId}")
 	public ResponseEntity<Void> deleteContent(@PathVariable Long contentId) {
 		contentService.deleteContent(contentId);
