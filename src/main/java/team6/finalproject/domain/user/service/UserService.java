@@ -14,6 +14,7 @@ import team6.finalproject.domain.user.dto.PasswordChangeRequest;
 import team6.finalproject.domain.user.dto.UserCreateRequest;
 import team6.finalproject.domain.user.dto.UserDto;
 import team6.finalproject.domain.user.dto.UserLockUpdateRequest;
+import team6.finalproject.domain.user.dto.UserProfileResponse;
 import team6.finalproject.domain.user.dto.UserRoleUpdateRequest;
 import team6.finalproject.domain.user.dto.UserUpdateRequest;
 import team6.finalproject.domain.user.entity.Role;

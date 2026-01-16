@@ -1,3 +1,10 @@
 package team6.finalproject.domain.dm.dto;
 
-public record UserSimpleResponse(Long userId, String name, String profileImageUrl) {}
+import com.fasterxml.jackson.annotation.JsonFormat;
+
+public record UserSimpleResponse(
+	@JsonFormat(shape = JsonFormat.Shape.STRING)
+	Long userId,
+	String name,
+	String profileImageUrl
+) {}
