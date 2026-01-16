@@ -42,7 +42,6 @@ public class JwtLoginSuccessHandler implements AuthenticationSuccessHandler {
         Cookie refreshCookie = jwtTokenProvider.generateRefreshTokenCookie(refreshToken);
         response.addCookie(refreshCookie);
 
-          // ⭐ UserDto → JwtUserResponse 변환
           JwtUserResponse userResponse = JwtUserResponse.from(userDetails.getUserDto());
 
           JwtDto jwtDto = new JwtDto(userResponse, accessToken);
