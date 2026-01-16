@@ -1,9 +1,13 @@
 package team6.finalproject.domain.user.service;
 
+import com.amazonaws.services.ec2.model.Image;
+import java.io.IOException;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.fileupload.FileUploadException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 import team6.finalproject.domain.user.dto.CursorResponse;
 import team6.finalproject.domain.user.dto.PasswordChangeRequest;
@@ -11,9 +15,12 @@ import team6.finalproject.domain.user.dto.UserCreateRequest;
 import team6.finalproject.domain.user.dto.UserDto;
 import team6.finalproject.domain.user.dto.UserLockUpdateRequest;
 import team6.finalproject.domain.user.dto.UserRoleUpdateRequest;
+import team6.finalproject.domain.user.dto.UserUpdateRequest;
 import team6.finalproject.domain.user.entity.Role;
 import team6.finalproject.domain.user.entity.User;
 import team6.finalproject.domain.user.repository.UserRepository;
+import team6.finalproject.domain.common.S3Folder;
+import team6.finalproject.domain.common.S3Service;
 import team6.finalproject.global.security.jwt.JwtRegistry;
 
 @Service
@@ -22,6 +29,7 @@ public class UserService {
 
   private final UserRepository userRepository;
   private final JwtRegistry jwtRegistry;
+  private final S3Service s3Service;
 
   @Transactional
   public UserDto create(UserCreateRequest request) {
@@ -60,6 +68,23 @@ public class UserService {
         .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
     user.changePassword(request.password());
+  }
+
+  @Transactional
+  public UserDto updateProfile(Long userId, UserUpdateRequest request, MultipartFile file)
+      throws IOException {
+
+    User user = userRepository.findById(userId)
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+    String url = null;
+    if (file != null && !file.isEmpty()) {
+      url = s3Service.upload(file, S3Folder.PROFILE.toString());
+    }
+
+    user.updateProfile(request.name(), url);
+
+    return UserDto.from(user);
   }
 
   @Transactional
