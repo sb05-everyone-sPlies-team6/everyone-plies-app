@@ -49,13 +49,13 @@ public class UserService {
     return userRepository.findAll(emailLike,  role, isLocked, cursor, idAfter, limit, sortDirection, sortBy);
   }
 
-    @Transactional(readOnly = true)
-    public UserProfileResponse findByIdForProfile(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+  @Transactional(readOnly = true)
+  public UserProfileResponse findByIdForProfile(Long userId) {
+    User user = userRepository.findById(userId)
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
-        UserDto userDto = UserDto.from(user);
-        return UserProfileResponse.from(userDto); // 프론트용 String id
+    UserDto userDto = UserDto.from(user);
+    return UserProfileResponse.from(userDto); // 프론트용 String id
     }
 
   @Transactional
@@ -70,8 +70,7 @@ public class UserService {
   }
 
   @Transactional
-  public UserProfileResponse updateProfile(Long userId, UserUpdateRequest request, MultipartFile file)
-      throws IOException {
+  public UserProfileResponse updateProfile(Long userId, UserUpdateRequest request, MultipartFile file) {
 
     User user = userRepository.findById(userId)
         .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
