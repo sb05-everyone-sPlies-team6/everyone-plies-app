@@ -68,24 +68,16 @@ public class UserController {
     }
 
   @PatchMapping(value="/{userId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-  public ResponseEntity<UserDto> update(@PathVariable Long userId,
+  public ResponseEntity<UserProfileResponse> update(@PathVariable Long userId,
       @RequestPart(value = "request") @Valid UserUpdateRequest request,
       @RequestPart(value = "image", required = false) MultipartFile file)
       throws IOException {
-
-    log.info("file: null? {}, empty? {}, name={}, size={}, ct={}",
-        file == null,
-        file != null && file.isEmpty(),
-        file != null ? file.getOriginalFilename() : null,
-        file != null ? file.getSize() : null,
-        file != null ? file.getContentType() : null
-    );
 
     if (!userId.equals(currentUserId())) {
       throw new AccessDeniedException("본인만 수정할 수 있습니다.");
     }
 
-    UserDto user = userService.updateProfile(currentUserId(), request, file);
+    UserProfileResponse user = userService.updateProfile(currentUserId(), request, file);
     return ResponseEntity.status(HttpStatus.OK).body(user);
   }
 

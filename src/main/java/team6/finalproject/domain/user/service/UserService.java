@@ -70,7 +70,7 @@ public class UserService {
   }
 
   @Transactional
-  public UserDto updateProfile(Long userId, UserUpdateRequest request, MultipartFile file)
+  public UserProfileResponse updateProfile(Long userId, UserUpdateRequest request, MultipartFile file)
       throws IOException {
 
     User user = userRepository.findById(userId)
@@ -83,7 +83,8 @@ public class UserService {
 
     user.updateProfile(request.name(), url);
 
-    return UserDto.from(user);
+    UserDto userDto = UserDto.from(user);
+    return UserProfileResponse.from(userDto);
   }
 
   @Transactional
