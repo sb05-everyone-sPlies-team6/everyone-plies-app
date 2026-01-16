@@ -1,34 +1,59 @@
 package team6.finalproject.domain.common;
 
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.ObjectMetadata;
 import java.io.IOException;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 
 
 @RequiredArgsConstructor
 @Component
 public class S3Service {
 
-  private final AmazonS3 amazonS3;
+  private final S3Client s3Client;
 
   @Value("${cloud.aws.s3.bucket}")
   private String bucket;
 
-  public String upload(MultipartFile file, String folderName) throws IOException {
-    String fileName = UUID.randomUUID() + "-" + file.getOriginalFilename();
-    String key = folderName + "/" + fileName;
+  public String upload(MultipartFile file, String folderName) {
+    if (file == null || file.isEmpty()) {
+      throw new IllegalArgumentException("File is empty");
+    }
 
-    ObjectMetadata metadata = new ObjectMetadata();
-    metadata.setContentLength(file.getSize());
-    metadata.setContentType(file.getContentType());
+    String original = (file.getOriginalFilename() == null) ? "image" : file.getOriginalFilename();
+    String imageName = UUID.randomUUID().toString() + "_" + original;
 
-    amazonS3.putObject(bucket, key, file.getInputStream(), metadata);
+    String key = folderName + "/" + imageName;
 
-    return amazonS3.getUrl(bucket, key).toString();
+    try {
+      PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+          .bucket(bucket)
+          .key(key)
+          .contentType(file.getContentType())
+          .contentLength(file.getSize())
+          .build();
+
+      PutObjectResponse response = s3Client.putObject(
+          putObjectRequest,
+          RequestBody.fromInputStream(file.getInputStream(), file.getSize())
+      );
+
+      if (!response.sdkHttpResponse().isSuccessful()) {
+        throw new RuntimeException("Upload failed");
+      }
+
+      return s3Client.utilities()
+          .getUrl(b -> b.bucket(bucket).key(key))
+          .toExternalForm();
+
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 }
