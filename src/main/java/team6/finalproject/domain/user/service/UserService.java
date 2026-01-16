@@ -1,9 +1,7 @@
 package team6.finalproject.domain.user.service;
 
-import com.amazonaws.services.ec2.model.Image;
 import java.io.IOException;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.fileupload.FileUploadException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
