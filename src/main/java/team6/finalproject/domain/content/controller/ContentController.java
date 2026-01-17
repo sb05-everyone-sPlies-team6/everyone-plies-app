@@ -1,6 +1,5 @@
 package team6.finalproject.domain.content.controller;
 
-import java.io.IOException;
 import java.util.List;
 
 import org.springframework.http.HttpStatus;

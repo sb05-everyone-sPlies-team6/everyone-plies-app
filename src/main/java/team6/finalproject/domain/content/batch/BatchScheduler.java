@@ -20,7 +20,7 @@ public class BatchScheduler {
 	private final JobLauncher jobLauncher;
 	private final Job contentImportJob;
 
-	//@Scheduled(cron = "0 0 7 * * *")
+	@Scheduled(cron = "0 0 7 * * *")
 	//@Scheduled(initialDelay = 5000, fixedDelay = 3600000) //테스트용 5초뒤
 	public void runContentImportJob() {
 		try {

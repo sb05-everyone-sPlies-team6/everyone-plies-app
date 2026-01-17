@@ -1,6 +1,5 @@
 package team6.finalproject.domain.content.service;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,15 +36,6 @@ public class ContentService {
 	public CursorResponse<ContentResponse> getContents(
 		String cursor, String idAfter, int limit, List<String> tagsIn,
 		String sortBy, String sortDirection, String typeEqual, String keywordLike) {
-
-		Long cursorLong = null;
-		try {
-			if (cursor != null && !cursor.isBlank()) {
-				cursorLong = Long.parseLong(cursor);
-			}
-		} catch (NumberFormatException e) {
-			cursorLong = null;
-		}
 
 		List<Content> contents = contentRepository.findAllByCursor(
 			cursor, idAfter, limit, tagsIn, sortBy, sortDirection, typeEqual, keywordLike
