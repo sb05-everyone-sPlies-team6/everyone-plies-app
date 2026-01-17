@@ -134,10 +134,12 @@ public class ContentService {
 			.toList();
 	}
 
-	public ContentResponse createContent(ContentCreateRequest dto, MultipartFile file) throws IOException{
+	public ContentResponse createContent(ContentCreateRequest dto, MultipartFile file) {
 		String thumbnailUrl = dto.getThumbnailUrl();
-		if(file != null && !file.isEmpty()){
-			thumbnailUrl = s3Service.upload(file, S3Folder.CONTENTS.name().toLowerCase());
+
+		if (file != null && !file.isEmpty()) {
+			// CONTENTS 폴더로 업로드
+			thumbnailUrl = s3Service.upload(file, S3Folder.CONTENTS.name());
 		}
 
 		Content content = Content.builder()
@@ -150,32 +152,27 @@ public class ContentService {
 			.build();
 
 		Content saved = contentRepository.save(content);
-		syncTags(saved, dto.getTags()); // 개선된 싱크 로직 사용
+		syncTags(saved, dto.getTags());
 
 		return ContentResponse.from(saved, getTagNames(saved));
 	}
 
 	@Transactional
-	public ContentResponse patchContent(Long contentId, ContentPatchRequest dto, MultipartFile file) throws
-		IOException {
+	public ContentResponse patchContent(Long contentId, ContentPatchRequest dto, MultipartFile file) {
 		Content content = contentRepository.findById(contentId)
 			.orElseThrow(() -> new RuntimeException("Content not found"));
 
-		if(file != null && !file.isEmpty()){
-			String newThumbnailUrl = s3Service.upload(file, S3Folder.CONTENTS.name().toLowerCase());
-			content.updateThumbnailUrl(newThumbnailUrl);
-		} else if (dto.getThumbnail() != null) {
-			//파일없이 텍스트만 들어온 경우 로직 유지
-			content.updateThumbnailUrl(dto.getThumbnail());
+		if (file != null && !file.isEmpty()) {
+			String newUrl = s3Service.upload(file, S3Folder.CONTENTS.name());
+			content.updateThumbnailUrl(newUrl);
 		}
 
 		if (dto.getRequest() != null) {
 			ContentPatchRequest.PatchDetail detail = dto.getRequest();
 			if (detail.getTitle() != null) content.updateTitle(detail.getTitle());
 			if (detail.getDescription() != null) content.updateDescription(detail.getDescription());
-
 			if (detail.getTags() != null) {
-				syncTags(content, detail.getTags()); // 기존꺼 지우고 새로 저장
+				syncTags(content, detail.getTags());
 			}
 		}
 
