@@ -1,6 +1,5 @@
 package team6.finalproject.domain.content.controller;
 
-import java.io.IOException;
 import java.util.List;
 
 import org.springframework.http.HttpStatus;
@@ -52,7 +51,7 @@ public class ContentController {
 	@PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ResponseEntity<ContentResponse> createContent(
 		@RequestPart("request") @Valid ContentCreateRequest request,
-		@RequestPart(value = "thumbnail", required = false) MultipartFile file) throws IOException {
+		@RequestPart(value = "thumbnail", required = false) MultipartFile file) {
 
 		// 서비스 메서드 규격에 맞춰 request와 file 전달
 		return ResponseEntity.status(HttpStatus.CREATED)
@@ -69,8 +68,8 @@ public class ContentController {
 	@PatchMapping(value = "/{contentId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ResponseEntity<ContentResponse> patchContent(
 		@PathVariable Long contentId,
-		@RequestPart("request") ContentPatchRequest.PatchDetail detail, // 파라미터명을 detail로 변경하여 혼동 방지
-		@RequestPart(value = "thumbnail", required = false) MultipartFile file) throws IOException {
+		@RequestPart("request") ContentPatchRequest.PatchDetail detail,
+		@RequestPart(value = "thumbnail", required = false) MultipartFile file) {
 
 		ContentPatchRequest patchRequest = new ContentPatchRequest();
 		patchRequest.setRequest(detail); // 내부 Detail 설정
