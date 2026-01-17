@@ -56,6 +56,15 @@ security:
     prefix: "Bearer "
     algorithm: "HS256"
     clock-skew-seconds: 60
+  oauth2:
+    client:
+      registration:
+        google:
+          client-id: ${CLIENT_ID}
+          client-secret: ${CLIENT_SECRET}
+          scope:
+            - email
+            - profile
 
 
 # S3
