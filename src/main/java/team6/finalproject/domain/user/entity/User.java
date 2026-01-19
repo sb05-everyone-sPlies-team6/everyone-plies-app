@@ -29,7 +29,7 @@ public class User {
   @Column(name = "email", nullable = false, unique = true)
   private String email;
 
-  @Column(name = "password", nullable = false)
+  @Column(name = "password")
   private String password;
 
   @Column(name = "name", nullable = false)
@@ -54,10 +54,26 @@ public class User {
   @Column(name = "updated_at")
   private LocalDateTime updatedAt;
 
+  @Column(name = "provider")
+  private String provider;
+
+  @Column(name = "providerId")
+  private String providerId;
+
   public User(String email, String password, String name) {
     this.email = email;
     this.password = password;
     this.name = name;
+    this.role = Role.USER;
+    this.locked = false;
+    this.createdAt = LocalDateTime.now();
+  }
+
+  public User(String email, String name, String provider, String providerId) {
+    this.email = email;
+    this.name = name;
+    this.provider = provider;
+    this.providerId = providerId;
     this.role = Role.USER;
     this.locked = false;
     this.createdAt = LocalDateTime.now();

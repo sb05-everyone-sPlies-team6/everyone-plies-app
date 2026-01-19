@@ -13,6 +13,7 @@ import jakarta.servlet.http.Cookie;
 import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -24,6 +25,7 @@ import org.springframework.stereotype.Component;
 import team6.finalproject.domain.user.dto.UserDto;
 import team6.finalproject.domain.user.entity.Role;
 import team6.finalproject.domain.user.entity.User;
+import team6.finalproject.global.security.MoplOauth2UserDetails;
 import team6.finalproject.global.security.MoplUserDetails;
 
 // JWT 토큰 발급, 유효성 검사, 사용자 정보를 꺼내줌
@@ -73,6 +75,16 @@ public class JwtTokenProvider {
     return generateToken(userDetails, refreshTokenExpirationMs, refreshTokenSigner, "refresh");
   }
 
+  public String generateAccessToken(MoplOauth2UserDetails userDetails) throws JOSEException {
+    return generateToken(userDetails.getUser(), userDetails.getAuthorities(),
+        accessTokenExpirationMs, accessTokenSigner, "access");
+  }
+
+  public String generateRefreshToken(MoplOauth2UserDetails userDetails) throws JOSEException {
+    return generateToken(userDetails.getUser(), userDetails.getAuthorities(),
+        refreshTokenExpirationMs, refreshTokenSigner, "refresh");
+  }
+
   private String generateToken(MoplUserDetails userDetails, long accessTokenExpirationMs,
       JWSSigner signer, String tokenType) throws JOSEException {
 
@@ -109,6 +121,42 @@ public class JwtTokenProvider {
 
     return token;
   }
+
+  private String generateToken(
+      User userEntity,
+      Collection<? extends GrantedAuthority> authorities,
+      long expirationMs,
+      JWSSigner signer,
+      String tokenType
+  ) throws JOSEException {
+
+    String tokenId = UUID.randomUUID().toString();
+
+    Date now = new Date();
+    Date expiration = new Date(now.getTime() + expirationMs);
+
+    JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
+        .subject(userEntity.getEmail())
+        .jwtID(tokenId)
+        .issuer(issuer)
+        .claim("userId", userEntity.getId())
+        .claim("type", tokenType)
+        .claim("username", userEntity.getName())
+        .claim("createdAt", userEntity.getCreatedAt().toString())
+        .claim("profileImageUrl", userEntity.getProfileImageUrl())
+        .claim("locked", Boolean.TRUE.equals(userEntity.getLocked()))
+        .claim("roles", authorities.stream()
+            .map(GrantedAuthority::getAuthority)
+            .collect(Collectors.toList()))
+        .issueTime(now)
+        .expirationTime(expiration)
+        .build();
+
+    SignedJWT signedJWT = new SignedJWT(new JWSHeader(JWSAlgorithm.HS256), claimsSet);
+    signedJWT.sign(signer);
+    return signedJWT.serialize();
+  }
+
 
   public boolean validateAccessToken(String token) {
     return validateToken(token, accessTokenVerifier, "access");

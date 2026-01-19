@@ -17,6 +17,16 @@ spring:
       maxRequestSize: 300MB  # 한 번에 최대 업로드 가능 용량
   main:
     allow-bean-definition-overriding: true
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${CLIENT_ID}
+            client-secret: ${CLIENT_SECRET}
+            scope:
+              - email
+              - profile
 
   # JPA
   jpa:
@@ -56,16 +66,6 @@ security:
     prefix: "Bearer "
     algorithm: "HS256"
     clock-skew-seconds: 60
-  oauth2:
-    client:
-      registration:
-        google:
-          client-id: ${CLIENT_ID}
-          client-secret: ${CLIENT_SECRET}
-          scope:
-            - email
-            - profile
-
 
 # S3
 cloud:
