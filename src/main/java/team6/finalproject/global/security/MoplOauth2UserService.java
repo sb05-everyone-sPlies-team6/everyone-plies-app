@@ -25,13 +25,21 @@ public class MoplOauth2UserService extends DefaultOAuth2UserService {
 
     if (provider.equals("google")) {
       oAuth2UserInfo = new GoogleUserDetails(oAuth2User.getAttributes());
+    } else if (provider.equals("kakao")) {
+      oAuth2UserInfo = new KaKaoUserDetails(oAuth2User.getAttributes());
+
     } else {
       throw new OAuth2AuthenticationException("Unsupported provider: " + provider);
     }
 
     String providerId = oAuth2UserInfo.getProviderId();
-    String email = oAuth2UserInfo.getEmail();
-    String name = oAuth2User.getName();
+    String rawEmail = oAuth2UserInfo.getEmail();
+
+    final String email = (rawEmail == null || rawEmail.isBlank())
+        ? "user_" + oAuth2UserInfo.getProviderId() + "@kakao.com"
+        : rawEmail;
+
+    String name = oAuth2UserInfo.getName();
 
     User user = userRepository.findByProviderAndProviderId(provider, providerId)
         .orElseGet(() -> userRepository.save(new User(email, name, provider, providerId)));

@@ -17,13 +17,6 @@ import team6.finalproject.domain.user.dto.UserDto;
 import team6.finalproject.global.security.MoplOauth2UserDetails;
 import team6.finalproject.global.security.dto.ErrorResponse;
 
-/**
- * OAuth2 로그인 성공 시:
- * 1) access/refresh 발급
- * 2) refresh 쿠키 저장
- * 3) registry 저장 (refresh 검증/회전용)
- * 4) 같은 서버(8080)의 메인(/)으로 redirect
- */
 @Component
 @RequiredArgsConstructor
 public class JwtOauth2SuccessHandler implements AuthenticationSuccessHandler {
@@ -32,10 +25,7 @@ public class JwtOauth2SuccessHandler implements AuthenticationSuccessHandler {
   private final JwtRegistry jwtRegistry;
   private final ObjectMapper objectMapper;
 
-  /**
-   * 선택 B: 백엔드가 프론트 정적 리소스를 서빙하므로 기본은 "/"
-   * (필요 시 설정으로 변경 가능)
-   */
+
   @Value("${auth.oauth2.redirect-uri:/}")
   private String redirectUri;
 
@@ -46,26 +36,21 @@ public class JwtOauth2SuccessHandler implements AuthenticationSuccessHandler {
       Authentication authentication
   ) throws IOException, ServletException {
 
-    // OAuth principal 확인
     if (!(authentication.getPrincipal() instanceof MoplOauth2UserDetails oauthDetails)) {
       writeJsonError(response, HttpServletResponse.SC_UNAUTHORIZED, "Authentication failed");
       return;
     }
 
     try {
-      // JWT 발급
       String accessToken = jwtTokenProvider.generateAccessToken(oauthDetails);
       String refreshToken = jwtTokenProvider.generateRefreshToken(oauthDetails);
 
-      // refresh 쿠키 저장
       Cookie refreshCookie = jwtTokenProvider.generateRefreshTokenCookie(refreshToken);
       response.addCookie(refreshCookie);
 
-      // registry 저장
       UserDto userDto = UserDto.from(oauthDetails.getUser());
       jwtRegistry.registerJwtInformation(new JwtInformation(userDto, accessToken, refreshToken));
 
-      // ✅ 메인 화면으로 이동 (static/index.html)
       response.setStatus(HttpServletResponse.SC_FOUND);
       response.sendRedirect(redirectUri);
 
