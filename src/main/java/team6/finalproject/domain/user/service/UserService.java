@@ -2,11 +2,18 @@ package team6.finalproject.domain.user.service;
 
 import java.io.IOException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
+import team6.finalproject.domain.notification.dto.NotificationDto;
+import team6.finalproject.domain.notification.entity.Level;
+import team6.finalproject.domain.notification.entity.Notification;
+import team6.finalproject.domain.notification.entity.TargetType;
+import team6.finalproject.domain.notification.event.NotificationCreatedEvent;
+import team6.finalproject.domain.notification.repository.NotificationRepository;
 import team6.finalproject.domain.user.dto.CursorResponse;
 import team6.finalproject.domain.user.dto.PasswordChangeRequest;
 import team6.finalproject.domain.user.dto.UserCreateRequest;
@@ -27,8 +34,10 @@ import team6.finalproject.global.security.jwt.JwtRegistry;
 public class UserService {
 
   private final UserRepository userRepository;
+  private final NotificationRepository notificationRepository;
   private final JwtRegistry jwtRegistry;
   private final S3Service s3Service;
+  private final ApplicationEventPublisher eventPublisher;
 
   @Transactional
   public UserDto create(UserCreateRequest request) {
@@ -98,6 +107,19 @@ public class UserService {
 
     user.changeRole(request.role());
     jwtRegistry.invalidateJwtInformationByUserId(userId);
+
+    Notification notification = new Notification(
+        user,
+        "ROLE CHANGED",
+        user.getName() + "님의 권한이 " + user.getRole() + "로 변환되었습니다.",
+        Level.INFO,
+        user.getId(),
+        TargetType.ROLE_CHANGED
+    );
+
+    Notification saved = notificationRepository.save(notification);
+    NotificationDto dto = NotificationDto.from(saved);
+    eventPublisher.publishEvent(new NotificationCreatedEvent(dto));
   }
 
   @Transactional
