@@ -31,6 +31,7 @@ import team6.finalproject.global.security.jwt.JwtAuthenticationFilter;
 import team6.finalproject.global.security.jwt.JwtLoginFailureHandler;
 import team6.finalproject.global.security.jwt.JwtLoginSuccessHandler;
 import team6.finalproject.global.security.jwt.JwtLogoutHandler;
+import team6.finalproject.global.security.jwt.JwtOauth2SuccessHandler;
 import team6.finalproject.global.security.jwt.JwtRegistry;
 import team6.finalproject.global.security.jwt.JwtTokenProvider;
 
@@ -48,8 +49,10 @@ public class SecurityConfig {
       JwtLoginSuccessHandler jwtLoginSuccessHandler,
       JwtLogoutHandler jwtLogoutHandler,
       JwtLoginFailureHandler jwtLoginFailureHandler,
+      JwtOauth2SuccessHandler jwtOauth2SuccessHandler,
       JwtAuthenticationFilter jwtAuthenticationFilter,
-      AuthenticationManager authenticationManager  // AuthenticationManager 주입
+      AuthenticationManager authenticationManager,  // AuthenticationManager 주입
+      MoplOauth2UserService moplOauth2UserService
   ) throws Exception {
 
 //     1) CSRF 설정 (쿠키 방식 + 일부 URL 예외)
@@ -64,7 +67,6 @@ public class SecurityConfig {
             "/api/conversations/**", //임시
             "/pub/conversations/**", //임시
             "/h2-console/**"
-            // "/api/**"
         )
         .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
         .csrfTokenRequestHandler(new SpaCsrfTokenRequestHandler())
@@ -92,6 +94,11 @@ public class SecurityConfig {
         .requestMatchers("/api/auth/reset-password").permitAll()
         .requestMatchers(HttpMethod.POST, "/api/users").permitAll() // 회원가입
         .requestMatchers(HttpMethod.POST, "/api/contents").hasRole("ADMIN") //콘텐츠 생성
+        .requestMatchers(
+            "/oauth2/**",
+            "/login/oauth2/**",
+            "/error"
+        ).permitAll()
         // Swagger / 문서 / H2 콘솔
         .requestMatchers(
             "/swagger-resource/**",
@@ -125,6 +132,12 @@ public class SecurityConfig {
 
     // 4) formLogin 비활성화 (우리는 JSON 로그인만 사용)
     http.formLogin(AbstractHttpConfigurer::disable);
+
+    // 4) formLogin 비활성화 아래쯤에 추가 추천
+    http.oauth2Login(oauth -> oauth
+        .userInfoEndpoint(userInfo -> userInfo.userService(moplOauth2UserService))
+        .successHandler(jwtOauth2SuccessHandler)
+    );
 
     // 5) JSON 로그인 필터 생성 & 설정
     JsonUsernamePasswordAuthenticationFilter jsonFilter =
