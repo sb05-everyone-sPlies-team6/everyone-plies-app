@@ -156,12 +156,14 @@ public class SecurityConfig {
     http.addFilterAt(jsonFilter, UsernamePasswordAuthenticationFilter.class);
 
     // 6) JWT 기반 로그아웃
-    http.logout(logout -> logout
-        .logoutUrl("/api/auth/sign-out")
-        .addLogoutHandler(jwtLogoutHandler)
-        .logoutSuccessHandler(
-            new HttpStatusReturningLogoutSuccessHandler(HttpStatus.NO_CONTENT))
-    );
+    http.logout(logout -> {
+      System.out.println("🔥 logout config loaded");
+      logout
+          .logoutUrl("/api/auth/sign-out")
+          .addLogoutHandler(jwtLogoutHandler)
+          .logoutSuccessHandler(
+              new HttpStatusReturningLogoutSuccessHandler(HttpStatus.NO_CONTENT));
+    });
 
     // 7) 예외 처리
     http.exceptionHandling(ex -> ex
@@ -213,10 +215,10 @@ public class SecurityConfig {
   }
 
   // JWT 레지스트리 (동시 로그인 1개 허용)
-  @Bean
-  public JwtRegistry jwtRegistry(JwtTokenProvider jwtTokenProvider) {
-    return new InMemoryJwtRegistry(1, jwtTokenProvider);
-  }
+//  @Bean
+//  public JwtRegistry jwtRegistry(JwtTokenProvider jwtTokenProvider) {
+//    return new InMemoryJwtRegistry(1, jwtTokenProvider);
+//  }
 
   // 권한 계층: ADMIN ⊃ USER
   @Bean
