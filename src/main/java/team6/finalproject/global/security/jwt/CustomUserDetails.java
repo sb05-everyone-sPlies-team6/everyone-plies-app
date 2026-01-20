@@ -1,4 +1,4 @@
-package team6.finalproject.global.security;
+package team6.finalproject.global.security.jwt;
 
 import java.util.Collection;
 import java.util.List;
@@ -13,7 +13,7 @@ import team6.finalproject.domain.user.dto.UserDto;
 
 @Getter
 @RequiredArgsConstructor
-public class MoplUserDetails implements UserDetails {
+public class CustomUserDetails implements UserDetails {
 
   private final UserDto userDto;
   private final String password;

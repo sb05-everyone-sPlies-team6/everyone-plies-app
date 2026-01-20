@@ -1,4 +1,4 @@
-package team6.finalproject.global.security.jwt;
+package team6.finalproject.global.security.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.ServletException;
@@ -14,8 +14,10 @@ import org.springframework.stereotype.Component;
 import team6.finalproject.domain.user.dto.JwtDto;
 import team6.finalproject.domain.user.dto.JwtInformation;
 import team6.finalproject.domain.user.dto.JwtUserResponse;
-import team6.finalproject.global.security.MoplUserDetails;
+import team6.finalproject.global.security.jwt.CustomUserDetails;
 import team6.finalproject.global.security.dto.ErrorResponse;
+import team6.finalproject.global.security.jwt.JwtRegistry;
+import team6.finalproject.global.security.jwt.JwtTokenProvider;
 
 //  로그인 성공 시 JWT 발급
 
@@ -34,7 +36,7 @@ public class JwtLoginSuccessHandler implements AuthenticationSuccessHandler {
     response.setCharacterEncoding("UTF-8");
     response.setContentType(MediaType.APPLICATION_JSON_VALUE);
 
-    if (authentication.getPrincipal() instanceof MoplUserDetails userDetails) {
+    if (authentication.getPrincipal() instanceof CustomUserDetails userDetails) {
       try {
         String accessToken = jwtTokenProvider.generateAccessToken(userDetails);
         String refreshToken = jwtTokenProvider.generateRefreshToken(userDetails);

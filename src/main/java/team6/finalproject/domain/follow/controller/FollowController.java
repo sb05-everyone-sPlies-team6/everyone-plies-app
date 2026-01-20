@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import team6.finalproject.domain.follow.dto.FollowDto;
 import team6.finalproject.domain.follow.dto.FollowRequest;
 import team6.finalproject.domain.follow.service.FollowService;
-import team6.finalproject.global.security.MoplUserDetails;
+import team6.finalproject.global.security.jwt.CustomUserDetails;
 
 @RestController
 @RequiredArgsConstructor
@@ -59,7 +59,7 @@ public class FollowController {
 
     Object user = auth.getPrincipal();
 
-    if (user instanceof MoplUserDetails mud && mud.getUserDto() != null) {
+    if (user instanceof CustomUserDetails mud && mud.getUserDto() != null) {
       return mud.getUserDto().id();
     }
 

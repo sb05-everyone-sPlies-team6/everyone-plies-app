@@ -1,4 +1,4 @@
-package team6.finalproject.global.security.jwt;
+package team6.finalproject.global.security.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.Cookie;
@@ -8,7 +8,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.logout.LogoutHandler;
 import org.springframework.stereotype.Component;
-import team6.finalproject.global.security.MoplUserDetails;
+import team6.finalproject.global.security.jwt.CustomUserDetails;
+import team6.finalproject.global.security.jwt.JwtRegistry;
+import team6.finalproject.global.security.jwt.JwtTokenProvider;
 
 // 토큰 파기 구현 필요 -> 완료
 
@@ -23,7 +25,7 @@ public class JwtLogoutHandler implements LogoutHandler {
   public void logout(HttpServletRequest request, HttpServletResponse response,
       Authentication authentication) {
 
-    if (authentication != null && authentication.getPrincipal() instanceof MoplUserDetails userDetails) {
+    if (authentication != null && authentication.getPrincipal() instanceof CustomUserDetails userDetails) {
       Long userId = userDetails.getUserDto().id();
       jwtRegistry.invalidateJwtInformationByUserId(userId);
     }

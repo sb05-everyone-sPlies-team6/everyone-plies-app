@@ -69,7 +69,7 @@
 //
 //}
 
-package team6.finalproject.global.security.jwt;
+package team6.finalproject.global.security.filter;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

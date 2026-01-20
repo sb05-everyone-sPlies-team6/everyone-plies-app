@@ -9,7 +9,7 @@ import team6.finalproject.domain.playlist.dto.PlaylistCreateRequest;
 import team6.finalproject.domain.playlist.dto.PlaylistDto;
 import team6.finalproject.domain.playlist.dto.PlaylistUpdateRequest;
 import team6.finalproject.domain.playlist.service.PlaylistService;
-import team6.finalproject.global.security.MoplUserDetails;
+import team6.finalproject.global.security.jwt.CustomUserDetails;
 
 @RestController
 @RequiredArgsConstructor
@@ -24,7 +24,7 @@ public class PlaylistController {
             @RequestParam(defaultValue = "updatedAt") String sortBy,
             @RequestParam(defaultValue = "DESCENDING") String sortDirection,
             @RequestParam(required = false) String cursor,
-            @AuthenticationPrincipal MoplUserDetails userDetails
+            @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
         Long userId = userDetails != null ? userDetails.getUserDto().id() : null;
 
@@ -36,7 +36,7 @@ public class PlaylistController {
     @PostMapping
     public ResponseEntity<PlaylistDto> createPlaylist(
             @RequestBody PlaylistCreateRequest request,
-            @AuthenticationPrincipal MoplUserDetails userDetails
+            @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
         return ResponseEntity.ok(
                 playlistService.createPlaylist(userDetails.getUserDto().id(), request)
@@ -55,7 +55,7 @@ public class PlaylistController {
     @DeleteMapping("/{playlistId}")
     public ResponseEntity<Void> deletePlaylist(
             @PathVariable Long playlistId,
-            @AuthenticationPrincipal MoplUserDetails userDetails
+            @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
         playlistService.deletePlaylist(
                 playlistId,
@@ -68,7 +68,7 @@ public class PlaylistController {
     public ResponseEntity<Void> removeContent(
             @PathVariable Long playlistId,
             @PathVariable Long contentId,
-            @AuthenticationPrincipal MoplUserDetails userDetails
+            @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
         playlistService.removeContentFromPlaylist(
                 playlistId,
@@ -82,7 +82,7 @@ public class PlaylistController {
     @GetMapping("/{playlistId}")
     public ResponseEntity<PlaylistDto> getPlaylist(
             @PathVariable Long playlistId,
-            @AuthenticationPrincipal MoplUserDetails userDetails
+            @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
         Long userId = userDetails != null ? userDetails.getUserDto().id() : null;
         PlaylistDto playlistDto = playlistService.getPlaylistById(playlistId, userId);
@@ -93,7 +93,7 @@ public class PlaylistController {
     @PostMapping("/{playlistId}/subscription")
     public ResponseEntity<Void> subscribe(
             @PathVariable String playlistId,
-            @AuthenticationPrincipal MoplUserDetails userDetails
+            @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
         Long playlistIdLong = Long.valueOf(playlistId);
         Long userId = Long.valueOf(userDetails.getUserDto().id());
@@ -104,7 +104,7 @@ public class PlaylistController {
     @DeleteMapping("/{playlistId}/subscription")
     public ResponseEntity<Void> unsubscribe(
             @PathVariable String playlistId,
-            @AuthenticationPrincipal MoplUserDetails userDetails
+            @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
         Long playlistIdLong = Long.valueOf(playlistId);
         Long userId = Long.valueOf(userDetails.getUserDto().id());
@@ -116,7 +116,7 @@ public class PlaylistController {
     public ResponseEntity<Void> updatePlaylist(
             @PathVariable String playlistId,
             @RequestBody PlaylistUpdateRequest request,
-            @AuthenticationPrincipal MoplUserDetails userDetails
+            @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
         playlistService.updatePlaylist(
                 Long.valueOf(playlistId),

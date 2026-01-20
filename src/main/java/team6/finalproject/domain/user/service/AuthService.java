@@ -6,7 +6,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import team6.finalproject.domain.user.dto.JwtInformation;
-import team6.finalproject.global.security.MoplUserDetails;
+import team6.finalproject.global.security.jwt.CustomUserDetails;
 import team6.finalproject.global.security.jwt.JwtRegistry;
 import team6.finalproject.global.security.jwt.JwtTokenProvider;
 
@@ -33,7 +33,7 @@ public class AuthService {
     }
 
     try {
-      MoplUserDetails moplUserDetails = (MoplUserDetails) userDetails;
+      CustomUserDetails moplUserDetails = (CustomUserDetails) userDetails;
       String newAccessToken = tokenProvider.generateAccessToken(moplUserDetails);
       String newRefreshToken = tokenProvider.generateRefreshToken(moplUserDetails);
 
