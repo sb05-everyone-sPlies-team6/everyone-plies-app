@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.Query;
 import team6.finalproject.domain.playlist.entity.Playlist;
 
 import java.util.List;
+import team6.finalproject.domain.user.entity.User;
 
 public interface PlaylistRepository extends JpaRepository<Playlist, Long> {
 

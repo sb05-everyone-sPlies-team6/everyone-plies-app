@@ -48,12 +48,12 @@ public class FollowService {
     followRepository.save(follow);
 
     Notification notification = new Notification(
-        followee,                                      // 받는 사람 (팔로우 당한 사람)
-        "FOLLOW",                                      // Title
-        follower.getName() + "님이 회원님을 팔로우했습니다.", // Content
-        Level.INFO,                                    // Level
-        follower.getId(),                              // targetId (나를 팔로우한 유저 ID -> 프로필 이동용)
-        TargetType.FOLLOWED_BY_USER                    // targetType (User Enum에 맞춰 설정)
+        followee,
+        "FOLLOW",
+        follower.getName() + "님이 회원님을 팔로우했습니다.",
+        Level.INFO,
+        follower.getId(),
+        TargetType.FOLLOWED_BY_USER
     );
 
     Notification saved = notificationRepository.save(notification);
