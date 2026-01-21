@@ -1,3 +1,5 @@
+version: "3.8"
+
 services:
   app:
     build:
@@ -23,16 +25,23 @@ services:
       AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_KEY}
       AWS_REGION: ${AWS_REGION}
       AWS_S3_BUCKET: ${AWS_S3_BUCKET}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
     restart: always
 
   redis:
-    image: redis:7
-    container_name: redis-prod
+    image: redis:7.2
+    container_name: redis
     ports:
       - "6379:6379"
+    command: redis-server --appendonly yes
     volumes:
       - redis-data:/data
-    command: ["redis-server", "--appendonly", "yes"]
 
 volumes:
   redis-data:
+
+
+
+#  docker-compose build
+#  docker-compose up -d

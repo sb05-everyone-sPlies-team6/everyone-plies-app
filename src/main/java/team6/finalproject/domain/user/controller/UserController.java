@@ -30,7 +30,7 @@ import team6.finalproject.domain.user.dto.UserRoleUpdateRequest;
 import team6.finalproject.domain.user.dto.UserUpdateRequest;
 import team6.finalproject.domain.user.entity.Role;
 import team6.finalproject.domain.user.service.UserService;
-import team6.finalproject.global.security.MoplUserDetails;
+import team6.finalproject.global.security.jwt.CustomUserDetails;
 
 @RestController
 @RequiredArgsConstructor
@@ -110,7 +110,7 @@ public class UserController {
 
     Object user = auth.getPrincipal();
 
-    if (user instanceof MoplUserDetails mud && mud.getUserDto() != null) {
+    if (user instanceof CustomUserDetails mud && mud.getUserDto() != null) {
       return mud.getUserDto().id();
     }
 

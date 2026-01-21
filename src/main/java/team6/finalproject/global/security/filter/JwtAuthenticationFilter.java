@@ -1,4 +1,4 @@
-package team6.finalproject.global.security.jwt;
+package team6.finalproject.global.security.filter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
@@ -16,8 +16,10 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 import team6.finalproject.domain.user.dto.UserDto;
-import team6.finalproject.global.security.MoplUserDetails;
+import team6.finalproject.global.security.jwt.CustomUserDetails;
 import team6.finalproject.global.security.dto.ErrorResponse;
+import team6.finalproject.global.security.jwt.JwtRegistry;
+import team6.finalproject.global.security.jwt.JwtTokenProvider;
 
 @RequiredArgsConstructor
 @Component
@@ -41,7 +43,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             && jwtRegistry.hasActiveJwtInformationByAccessToken(token)) {
 
           UserDto userDto = jwtTokenProvider.parseAccessToken(token).userDto();
-          MoplUserDetails userDetails = new MoplUserDetails(userDto, null);
+          CustomUserDetails userDetails = new CustomUserDetails(userDto, null);
 
           if (!userDetails.isAccountNonLocked()) {
             SecurityContextHolder.clearContext();

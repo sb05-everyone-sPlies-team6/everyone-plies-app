@@ -1,4 +1,4 @@
-package team6.finalproject.global.security;
+package team6.finalproject.global.security.oauth;
 
 public interface OAuth2UserInfo {
   String getProvider();

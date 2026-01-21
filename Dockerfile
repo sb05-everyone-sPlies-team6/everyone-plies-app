@@ -15,11 +15,15 @@ RUN chmod +x ./gradlew && sed -i 's/\r$//' ./gradlew
 # Gradle 캐시용 의존성 복사
 COPY build.gradle settings.gradle ./
 
+RUN chmod +x gradlew
+
 # 의존성 다운로드
 RUN ./gradlew dependencies
 
 # 소스 코드 복사
 COPY src ./src
+RUN ./gradlew build -x test # 테스트 제외함 빌드 빠름!
+# RUN ./gradlew build # 테스트 포함함! 빌드 느림!!
 
 # 빌드
 RUN ./gradlew build -x test --no-daemon

@@ -1,4 +1,4 @@
-package team6.finalproject.global.security;
+package team6.finalproject.global.security.jwt;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -13,7 +13,7 @@ import team6.finalproject.domain.user.repository.UserRepository;
 
 @Service
 @RequiredArgsConstructor
-public class MoplUserDetailsService implements UserDetailsService {
+public class CustomUserDetailsService implements UserDetailsService {
 
   private final UserRepository userRepository;
 
@@ -25,6 +25,6 @@ public class MoplUserDetailsService implements UserDetailsService {
 
     UserDto userDto = new UserDto(user.getId(), user.getCreatedAt(),
         user.getEmail(), user.getName(), user.getProfileImageUrl(), user.getRole(), user.getLocked());
-    return new MoplUserDetails(userDto, user.getPassword());
+    return new CustomUserDetails(userDto, user.getPassword());
   }
 }

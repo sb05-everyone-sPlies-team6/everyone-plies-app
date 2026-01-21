@@ -1,4 +1,4 @@
-package team6.finalproject.global.security;
+package team6.finalproject.global.security.oauth;
 
 import java.util.Map;
 import lombok.AllArgsConstructor;

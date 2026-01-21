@@ -1,4 +1,4 @@
-package team6.finalproject.global.security.jwt;
+package team6.finalproject.global.security.oauth;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.ServletException;
@@ -14,7 +14,8 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 import org.springframework.stereotype.Component;
 import team6.finalproject.domain.user.dto.JwtInformation;
 import team6.finalproject.domain.user.dto.UserDto;
-import team6.finalproject.global.security.MoplOauth2UserDetails;
+import team6.finalproject.global.security.jwt.JwtRegistry;
+import team6.finalproject.global.security.jwt.JwtTokenProvider;
 import team6.finalproject.global.security.dto.ErrorResponse;
 
 @Component
@@ -36,7 +37,7 @@ public class JwtOauth2SuccessHandler implements AuthenticationSuccessHandler {
       Authentication authentication
   ) throws IOException, ServletException {
 
-    if (!(authentication.getPrincipal() instanceof MoplOauth2UserDetails oauthDetails)) {
+    if (!(authentication.getPrincipal() instanceof CustomOauth2UserDetails oauthDetails)) {
       writeJsonError(response, HttpServletResponse.SC_UNAUTHORIZED, "Authentication failed");
       return;
     }
