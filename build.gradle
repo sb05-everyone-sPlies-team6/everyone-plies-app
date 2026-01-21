@@ -87,7 +87,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
     // MySQL 8용 드라이버
-    implementation 'mysql:mysql-connector-java:8.0.33'  // 안정적인 버전!
+    implementation 'mysql:mysql-connector-java:8.0.33'  // 안정적인 버전
 }
 
 tasks.named('test') {
