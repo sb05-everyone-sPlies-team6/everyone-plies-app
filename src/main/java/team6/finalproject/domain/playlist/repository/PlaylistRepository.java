@@ -1,13 +1,13 @@
 package team6.finalproject.domain.playlist.repository;
 
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import team6.finalproject.domain.playlist.entity.Playlist;
 
 import java.util.List;
-import team6.finalproject.domain.user.entity.User;
 
-public interface PlaylistRepository extends JpaRepository<Playlist, Long> {
+public interface PlaylistRepository extends JpaRepository<Playlist, Long>, PlaylistQueryRepository {
 
     @Query("""
             SELECT p FROM Playlist p
