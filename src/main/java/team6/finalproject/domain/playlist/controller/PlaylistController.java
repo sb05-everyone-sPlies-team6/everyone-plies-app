@@ -24,12 +24,26 @@ public class PlaylistController {
             @RequestParam(defaultValue = "updatedAt") String sortBy,
             @RequestParam(defaultValue = "DESCENDING") String sortDirection,
             @RequestParam(required = false) String cursor,
+            @RequestParam(required = false) String idAfter,
+            @RequestParam(required = false) String ownerIdEqual,
+            @RequestParam(required = false) String subscriberIdEqual,
+            @RequestParam(required = false) String keywordLike,
             @AuthenticationPrincipal MoplUserDetails userDetails
     ) {
-        Long userId = userDetails != null ? userDetails.getUserDto().id() : null;
+        Long viewerId = userDetails != null ? userDetails.getUserDto().id() : null;
 
         return ResponseEntity.ok(
-                playlistService.getPlaylists(userId, limit, sortBy, sortDirection, cursor)
+                playlistService.getPlaylists(
+                        viewerId,
+                        ownerIdEqual,
+                        subscriberIdEqual,
+                        keywordLike,
+                        limit,
+                        sortBy,
+                        sortDirection,
+                        cursor,
+                        idAfter
+                )
         );
     }
 
@@ -91,13 +105,13 @@ public class PlaylistController {
 
 
     @PostMapping("/{playlistId}/subscription")
-    public ResponseEntity<Void> subscribe(
-            @PathVariable String playlistId,
-            @AuthenticationPrincipal MoplUserDetails userDetails
+        public ResponseEntity<Void> subscribe(
+                @PathVariable String playlistId,
+                @AuthenticationPrincipal MoplUserDetails userDetails
     ) {
-        Long playlistIdLong = Long.valueOf(playlistId);
-        Long userId = Long.valueOf(userDetails.getUserDto().id());
-        playlistService.subscribePlaylist(playlistIdLong, userId);
+            Long playlistIdLong = Long.valueOf(playlistId);
+            Long userId = Long.valueOf(userDetails.getUserDto().id());
+            playlistService.subscribePlaylist(playlistIdLong, userId);
         return ResponseEntity.ok().build();
     }
 

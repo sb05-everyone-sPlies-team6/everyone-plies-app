@@ -18,8 +18,9 @@ public record PlaylistDto(
         int contentCount,
         List<ContentSummary> contents
 ) {
-    public static PlaylistDto fromEntity(
+    public static PlaylistDto from(
             Playlist playlist,
+            UserSummary owner,
             List<ContentSummary> contentSummaries,
             boolean subscribedByMe // 여기서 구독 여부 받음
     ) {
