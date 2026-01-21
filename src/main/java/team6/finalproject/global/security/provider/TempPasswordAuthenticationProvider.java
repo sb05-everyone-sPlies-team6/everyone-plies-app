@@ -8,6 +8,7 @@ import org.springframework.security.authentication.LockedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import team6.finalproject.domain.user.dto.UserDto;
@@ -23,6 +24,7 @@ public class TempPasswordAuthenticationProvider implements AuthenticationProvide
 
   private final UserRepository userRepository;
   private final StringRedisTemplate redisTemplate;
+  private final PasswordEncoder passwordEncoder;
 
   @Transactional(readOnly = true)
   @Override
@@ -51,7 +53,7 @@ public class TempPasswordAuthenticationProvider implements AuthenticationProvide
       return null;
     }
 
-    if (!tempPassword.equals(rawPassword)) {
+    if (!passwordEncoder.matches(rawPassword, tempPassword)) {
       throw new BadCredentialsException("Invalid password");
     }
 

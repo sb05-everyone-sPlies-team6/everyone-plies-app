@@ -8,6 +8,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import team6.finalproject.domain.user.dto.JwtInformation;
@@ -27,6 +28,7 @@ public class AuthService {
   private final JwtRegistry jwtRegistry;
   private final JwtTokenProvider tokenProvider;
   private final UserDetailsService userDetailsService;
+  private final PasswordEncoder passwordEncoder;
 
   private static final String TEMP_PW_KEY_PREFIX = "pw:temp:";
 
@@ -74,9 +76,10 @@ public class AuthService {
     }
 
     String tempPassword = generateTempPassword();
+    String encodePassword = passwordEncoder.encode(tempPassword);
 
     String key = TEMP_PW_KEY_PREFIX + email;
-    redisTemplate.opsForValue().set(key, tempPassword, Duration.ofSeconds(expirationSeconds));
+    redisTemplate.opsForValue().set(key, encodePassword, Duration.ofSeconds(expirationSeconds));
     mailService.sendMail(email, tempPassword, expirationSeconds);
 
   }

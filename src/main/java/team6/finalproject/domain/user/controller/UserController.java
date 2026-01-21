@@ -97,6 +97,9 @@ public class UserController {
 
   @PatchMapping("{userId}/password")
   public ResponseEntity<Void> changePassword(@PathVariable Long userId, @RequestBody @Valid PasswordChangeRequest request) {
+    if (!userId.equals(currentUserId())) {
+      throw new AccessDeniedException("본인만 수정할 수 있습니다.");
+    }
     userService.changePassword(userId, request);
     return ResponseEntity.status(HttpStatus.OK).build();
   }
