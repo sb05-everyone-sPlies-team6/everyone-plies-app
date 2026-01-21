@@ -1,6 +1,7 @@
 package team6.finalproject.global.security.jwt;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -22,6 +23,10 @@ public class CustomUserDetailsService implements UserDetailsService {
     User user = userRepository.findByEmail(username)
         .orElseThrow(
             () -> new UsernameNotFoundException("User with username " + username + " not found"));
+
+    if (Boolean.TRUE.equals(user.getLocked())) {
+      throw new LockedException("Account is locked");
+    }
 
     UserDto userDto = new UserDto(user.getId(), user.getCreatedAt(),
         user.getEmail(), user.getName(), user.getProfileImageUrl(), user.getRole(), user.getLocked());

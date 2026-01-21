@@ -9,12 +9,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.Http403ForbiddenEntryPoint;
@@ -27,6 +29,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import team6.finalproject.domain.user.entity.Role;
 import team6.finalproject.global.security.handler.Http403ForbiddenAccessDeniedHandler;
 import team6.finalproject.global.security.handler.SpaCsrfTokenRequestHandler;
+import team6.finalproject.global.security.jwt.CustomUserDetailsService;
 import team6.finalproject.global.security.jwt.InMemoryJwtRegistry;
 import team6.finalproject.global.security.filter.JsonUsernamePasswordAuthenticationFilter;
 import team6.finalproject.global.security.filter.JwtAuthenticationFilter;
@@ -37,6 +40,7 @@ import team6.finalproject.global.security.oauth.JwtOauth2SuccessHandler;
 import team6.finalproject.global.security.jwt.JwtRegistry;
 import team6.finalproject.global.security.jwt.JwtTokenProvider;
 import team6.finalproject.global.security.oauth.CustomOauth2UserService;
+import team6.finalproject.global.security.provider.TempPasswordAuthenticationProvider;
 
 @Configuration
 @EnableWebSecurity
@@ -187,6 +191,31 @@ public class SecurityConfig {
     return http.build();
   }
 
+  @Bean
+  public PasswordEncoder passwordEncoder() {
+    return new BCryptPasswordEncoder();
+  }
+
+  @Bean
+  public AuthenticationManager authenticationManager(
+      HttpSecurity http,
+      TempPasswordAuthenticationProvider tempPasswordAuthenticationProvider,
+      CustomUserDetailsService customUserDetailsService,
+      PasswordEncoder passwordEncoder
+  ) throws Exception {
+
+    AuthenticationManagerBuilder authBuilder =
+        http.getSharedObject(AuthenticationManagerBuilder.class);
+
+    authBuilder.authenticationProvider(tempPasswordAuthenticationProvider);
+
+    authBuilder.userDetailsService(customUserDetailsService)
+        .passwordEncoder(passwordEncoder);
+
+    return authBuilder.build();
+  }
+
+
   //   CORS 설정
   @Bean
   public CorsConfigurationSource corsConfigurationSource() {
@@ -199,19 +228,6 @@ public class SecurityConfig {
     UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
     source.registerCorsConfiguration("/**", config);
     return source;
-  }
-
-  @Bean
-  public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration)
-      throws Exception {
-    return configuration.getAuthenticationManager();
-  }
-
-  // 비밀번호 인코더
-  @Bean
-  public PasswordEncoder passwordEncoder() {
-    return org.springframework.security.crypto.password.NoOpPasswordEncoder.getInstance();
-    // return new BCryptPasswordEncoder();
   }
 
   // JWT 레지스트리 (동시 로그인 1개 허용)

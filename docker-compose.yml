@@ -1,9 +1,7 @@
-version: "3.8"
-
 services:
   file-management-app:
     build: .
-    ports: ["80:8080"]
+    ports: ["8080:8080"]
     env_file:
       - .env
     environment:
@@ -19,6 +17,10 @@ services:
       AWS_S3_BUCKET: ${AWS_S3_BUCKET}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      KAKAO_CLIENT_ID: ${KAKAO_CLIENT_ID}
+      KAKAO_CLIENT_SECRET: ${KAKAO_CLIENT_SECRET}
+      MAIL_USERNAME: ${MAIL_USERNAME}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
     restart: always
 
   redis:
@@ -32,7 +34,6 @@ services:
 
 volumes:
   redis-data:
-
 
 #  docker-compose build
 #  docker-compose up -d
