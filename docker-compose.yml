@@ -1,9 +1,9 @@
-version: "3.8"
-
 services:
   file-management-app:
     build: .
     ports: ["8080:8080"]
+    env_file:
+      - .env
     environment:
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-dev}
       DB_HOST: ${DB_HOST}
@@ -34,8 +34,6 @@ services:
 
 volumes:
   redis-data:
-
-
 
 #  docker-compose build
 #  docker-compose up -d

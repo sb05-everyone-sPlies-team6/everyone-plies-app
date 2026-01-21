@@ -39,7 +39,7 @@ public class AuthService {
   @Transactional
   public JwtInformation refreshToken(String refreshToken) {
     if (!tokenProvider.validateRefreshToken(refreshToken)
-    || !jwtRegistry.hasActiveJwtInformationByRefreshToken(refreshToken)) {
+        || !jwtRegistry.hasActiveJwtInformationByRefreshToken(refreshToken)) {
       throw new RuntimeException("Invalid refresh token");
     }
 

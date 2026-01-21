@@ -2,7 +2,6 @@ package team6.finalproject.domain.playlist.service;
 
 import java.util.NoSuchElementException;
 import lombok.RequiredArgsConstructor;
-import org.aspectj.weaver.ast.Not;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,7 +30,6 @@ import team6.finalproject.domain.user.dto.UserSummary;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -102,96 +100,102 @@ public class PlaylistService {
     }
 
     public CursorResponsePlaylistDto<PlaylistDto> getPlaylists(
-            Long userId,
+            Long viewerId,
+            String ownerIdEqual,
+            String subscriberIdEqual,
+            String keywordLike,
             int limit,
             String sortBy,
             String sortDirection,
-            String cursor
+            String cursor,
+            String idAfter
     ) {
-        List<Playlist> playlists = playlistRepository.findAllSorted(limit, sortBy, sortDirection, cursor);
+        List<Playlist> playlists = playlistRepository.findPlaylists(
+                ownerIdEqual != null ? Long.valueOf(ownerIdEqual) : null,
+                subscriberIdEqual != null ? Long.valueOf(subscriberIdEqual) : null,
+                keywordLike,
+                limit,
+                sortBy,
+                sortDirection,
+                cursor,
+                idAfter
+        );
 
-        List<PlaylistDto> data = playlists.stream().map(p -> {
-            var owner = userRepository.findById(p.getUserId())
-                    .map(u -> new UserSummary(
-                            String.valueOf(u.getId()),
-                            u.getName(),
-                            u.getProfileImageUrl()
-                    ))
-                    .orElse(new UserSummary("unknown", "unknown", null));
+        boolean hasNext = playlists.size() > limit;
+        List<Playlist> sliced = playlists.stream().limit(limit).toList();
 
-            List<ContentSummary> contents = playlistContentRepository.findAllByPlaylistId(p.getId())
-                    .stream()
-                    .map(pc -> contentRepository.findById(pc.getContentId())
-                            .map(ContentSummary::from)
-                            .orElse(null))
-                    .filter(Objects::nonNull)
-                    .toList();
+        List<PlaylistDto> data = sliced.stream()
+                .map(p -> {
+                    UserSummary owner = userRepository.findById(p.getUserId())
+                            .map(UserSummary::from)
+                            .orElse(UserSummary.unknown());
 
-            boolean subscribedByMe = userId != null &&
-                    playlistSubscriptionRepository.findByUserIdAndPlaylistId(userId, p.getId()).isPresent();
+                    List<ContentSummary> contents =
+                            playlistContentRepository.findAllByPlaylistId(p.getId())
+                                    .stream()
+                                    .map(pc -> contentRepository.findById(pc.getContentId())
+                                            .map(ContentSummary::from)
+                                            .orElse(null))
+                                    .filter(Objects::nonNull)
+                                    .toList();
 
-            return new PlaylistDto(
-                    String.valueOf(p.getId()),
-                    owner,
-                    p.getTitle(),
-                    p.getDescription(),
-                    p.getUpdatedAt(),
-                    p.getTotalSubscription(),
-                    subscribedByMe,
-                    contents.size(),
-                    List.copyOf(contents)
-            );
-        }).toList();
+                    boolean subscribedByMe = false;
 
-        boolean hasNext = data.size() > limit;
-        Playlist last = data.isEmpty() ? null : playlists.get(Math.min(data.size(), limit) - 1);
-        String nextCursor = last == null ? null : last.getUpdatedAt().toString();
+                    if (viewerId != null && !p.getUserId().equals(viewerId)) {
+                        subscribedByMe =
+                                playlistSubscriptionRepository
+                                        .findByUserIdAndPlaylistId(viewerId, p.getId())
+                                        .isPresent();
+                    }
+
+                    return PlaylistDto.from(p, owner, contents, subscribedByMe);
+                })
+                .toList();
+
+        Playlist last = sliced.isEmpty() ? null : sliced.get(sliced.size() - 1);
 
         return new CursorResponsePlaylistDto<>(
-                data.stream().limit(limit).collect(Collectors.toList()),
-                nextCursor,
+                data,
+                last == null ? null : last.getUpdatedAt().toString(),
                 last == null ? null : String.valueOf(last.getId()),
                 hasNext,
-                playlistRepository.count(),
+                playlistRepository.countPlaylists(
+                        ownerIdEqual != null ? Long.valueOf(ownerIdEqual) : null,
+                        subscriberIdEqual != null ? Long.valueOf(subscriberIdEqual) : null,
+                        keywordLike
+                ),
                 sortBy,
                 sortDirection
         );
     }
 
-    public PlaylistDto getPlaylistById(Long playlistId, Long userId) {
+    public PlaylistDto getPlaylistById(Long playlistId, Long viewerId) {
         Playlist playlist = playlistRepository.findById(playlistId)
                 .orElseThrow(() -> new IllegalArgumentException("플레이리스트를 찾을 수 없습니다."));
 
-        var owner = userRepository.findById(playlist.getUserId())
-                .map(u -> new UserSummary(
-                        String.valueOf(u.getId()),
-                        u.getName(),
-                        u.getProfileImageUrl()
-                ))
-                .orElse(new UserSummary("unknown", "unknown", null));
+        UserSummary owner = userRepository.findById(playlist.getUserId())
+                .map(UserSummary::from)
+                .orElse(UserSummary.unknown());
 
-        List<ContentSummary> contents = playlistContentRepository.findAllByPlaylistId(playlistId)
-                .stream()
-                .map(pc -> contentRepository.findById(pc.getContentId())
-                        .map(ContentSummary::from)
-                        .orElse(null))
-                .filter(Objects::nonNull)
-                .toList();
+        List<ContentSummary> contents =
+                playlistContentRepository.findAllByPlaylistId(playlistId)
+                        .stream()
+                        .map(pc -> contentRepository.findById(pc.getContentId())
+                                .map(ContentSummary::from)
+                                .orElse(null))
+                        .filter(Objects::nonNull)
+                        .toList();
 
-        boolean subscribedByMe = userId != null &&
-                playlistSubscriptionRepository.findByUserIdAndPlaylistId(userId, playlistId).isPresent();
+        boolean subscribedByMe = false;
 
-        return new PlaylistDto(
-                String.valueOf(playlist.getId()),
-                owner,
-                playlist.getTitle(),
-                playlist.getDescription(),
-                playlist.getUpdatedAt(),
-                playlist.getTotalSubscription(),
-                subscribedByMe,
-                contents.size(),
-                List.copyOf(contents)
-        );
+        if (viewerId != null && !playlist.getUserId().equals(viewerId)) {
+            subscribedByMe =
+                    playlistSubscriptionRepository
+                            .findByUserIdAndPlaylistId(viewerId, playlistId)
+                            .isPresent();
+        }
+
+        return PlaylistDto.from(playlist, owner, contents, subscribedByMe);
     }
 
     @Transactional
