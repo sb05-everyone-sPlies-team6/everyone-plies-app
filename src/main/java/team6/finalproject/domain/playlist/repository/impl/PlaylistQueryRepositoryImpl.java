@@ -50,8 +50,6 @@ public class PlaylistQueryRepositoryImpl implements PlaylistQueryRepository {
                                     .where(ps.userId.eq(subscriberId))
                     )
             );
-
-            // 🔥 핵심 수정: 내 플레이리스트 제외
             where.and(p.userId.ne(subscriberId));
         }
 
@@ -100,8 +98,6 @@ public class PlaylistQueryRepositoryImpl implements PlaylistQueryRepository {
                                     .where(ps.userId.eq(subscriberId))
                     )
             );
-
-            // 🔥 여기에도 동일하게 적용
             where.and(p.userId.ne(subscriberId));
         }
 
