@@ -25,15 +25,18 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import team6.finalproject.domain.user.entity.Role;
+import team6.finalproject.global.security.handler.Http403ForbiddenAccessDeniedHandler;
+import team6.finalproject.global.security.handler.SpaCsrfTokenRequestHandler;
 import team6.finalproject.global.security.jwt.InMemoryJwtRegistry;
-import team6.finalproject.global.security.jwt.JsonUsernamePasswordAuthenticationFilter;
-import team6.finalproject.global.security.jwt.JwtAuthenticationFilter;
-import team6.finalproject.global.security.jwt.JwtLoginFailureHandler;
-import team6.finalproject.global.security.jwt.JwtLoginSuccessHandler;
-import team6.finalproject.global.security.jwt.JwtLogoutHandler;
-import team6.finalproject.global.security.jwt.JwtOauth2SuccessHandler;
+import team6.finalproject.global.security.filter.JsonUsernamePasswordAuthenticationFilter;
+import team6.finalproject.global.security.filter.JwtAuthenticationFilter;
+import team6.finalproject.global.security.handler.JwtLoginFailureHandler;
+import team6.finalproject.global.security.handler.JwtLoginSuccessHandler;
+import team6.finalproject.global.security.handler.JwtLogoutHandler;
+import team6.finalproject.global.security.oauth.JwtOauth2SuccessHandler;
 import team6.finalproject.global.security.jwt.JwtRegistry;
 import team6.finalproject.global.security.jwt.JwtTokenProvider;
+import team6.finalproject.global.security.oauth.CustomOauth2UserService;
 
 @Configuration
 @EnableWebSecurity
@@ -52,7 +55,7 @@ public class SecurityConfig {
       JwtOauth2SuccessHandler jwtOauth2SuccessHandler,
       JwtAuthenticationFilter jwtAuthenticationFilter,
       AuthenticationManager authenticationManager,  // AuthenticationManager 주입
-      MoplOauth2UserService moplOauth2UserService
+      CustomOauth2UserService moplOauth2UserService
   ) throws Exception {
 
 //     1) CSRF 설정 (쿠키 방식 + 일부 URL 예외)
@@ -153,12 +156,14 @@ public class SecurityConfig {
     http.addFilterAt(jsonFilter, UsernamePasswordAuthenticationFilter.class);
 
     // 6) JWT 기반 로그아웃
-    http.logout(logout -> logout
-        .logoutUrl("/api/auth/sign-out")
-        .addLogoutHandler(jwtLogoutHandler)
-        .logoutSuccessHandler(
-            new HttpStatusReturningLogoutSuccessHandler(HttpStatus.NO_CONTENT))
-    );
+    http.logout(logout -> {
+      System.out.println("🔥 logout config loaded");
+      logout
+          .logoutUrl("/api/auth/sign-out")
+          .addLogoutHandler(jwtLogoutHandler)
+          .logoutSuccessHandler(
+              new HttpStatusReturningLogoutSuccessHandler(HttpStatus.NO_CONTENT));
+    });
 
     // 7) 예외 처리
     http.exceptionHandling(ex -> ex
@@ -210,10 +215,10 @@ public class SecurityConfig {
   }
 
   // JWT 레지스트리 (동시 로그인 1개 허용)
-  @Bean
-  public JwtRegistry jwtRegistry(JwtTokenProvider jwtTokenProvider) {
-    return new InMemoryJwtRegistry(1, jwtTokenProvider);
-  }
+//  @Bean
+//  public JwtRegistry jwtRegistry(JwtTokenProvider jwtTokenProvider) {
+//    return new InMemoryJwtRegistry(1, jwtTokenProvider);
+//  }
 
   // 권한 계층: ADMIN ⊃ USER
   @Bean

@@ -1,4 +1,4 @@
-package team6.finalproject.global.security;
+package team6.finalproject.global.security.oauth;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
@@ -11,7 +11,7 @@ import team6.finalproject.domain.user.repository.UserRepository;
 
 @Service
 @RequiredArgsConstructor
-public class MoplOauth2UserService extends DefaultOAuth2UserService {
+public class CustomOauth2UserService extends DefaultOAuth2UserService {
 
   private final UserRepository userRepository;
 
@@ -44,7 +44,7 @@ public class MoplOauth2UserService extends DefaultOAuth2UserService {
     User user = userRepository.findByProviderAndProviderId(provider, providerId)
         .orElseGet(() -> userRepository.save(new User(email, name, provider, providerId)));
 
-    return new MoplOauth2UserDetails(user, oAuth2User.getAttributes());
+    return new CustomOauth2UserDetails(user, oAuth2User.getAttributes());
 
   }
 

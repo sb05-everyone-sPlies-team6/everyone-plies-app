@@ -17,6 +17,10 @@ spring:
       maxRequestSize: 300MB  # 한 번에 최대 업로드 가능 용량
   main:
     allow-bean-definition-overriding: true
+  data:
+    redis:
+      host: redis
+      port: 6379
   security:
     oauth2:
       client:

@@ -1,4 +1,4 @@
-package team6.finalproject.global.security;
+package team6.finalproject.global.security.handler;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

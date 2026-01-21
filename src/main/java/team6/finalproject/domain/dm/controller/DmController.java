@@ -20,7 +20,7 @@ import team6.finalproject.domain.dm.dto.DmCreateRequest;
 import team6.finalproject.domain.dm.dto.DmResponse;
 import team6.finalproject.domain.dm.dto.MessageResponse;
 import team6.finalproject.domain.dm.service.DmService;
-import team6.finalproject.global.security.MoplUserDetails;
+import team6.finalproject.global.security.jwt.CustomUserDetails;
 
 @RestController
 @RequestMapping("/api/conversations")
@@ -32,7 +32,7 @@ public class DmController {
 	//대화 목록 조회
 	@GetMapping
 	public ResponseEntity<CursorResponse<DmResponse>> getDmList(
-		@AuthenticationPrincipal MoplUserDetails userDetails,
+		@AuthenticationPrincipal CustomUserDetails userDetails,
 		@RequestParam(required = false) String keywordLike,
 		@RequestParam(required = false) String cursor,
 		@RequestParam(defaultValue = "10") int limit) {
@@ -53,14 +53,14 @@ public class DmController {
 
 	@PostMapping
 	public ResponseEntity<DmResponse> createDm(
-		@AuthenticationPrincipal MoplUserDetails userDetails,
+		@AuthenticationPrincipal CustomUserDetails userDetails,
 		@RequestBody DmCreateRequest request) {
 		return ResponseEntity.ok(dmService.getOrCreateDm(userDetails.getUserDto().id(), request.withUserId()));
 	}
 
 	@GetMapping("/{conversationId}")
 	public ResponseEntity<DmResponse> getDm(
-		@AuthenticationPrincipal MoplUserDetails userDetails,
+		@AuthenticationPrincipal CustomUserDetails userDetails,
 		@PathVariable Long conversationId) {
 		return ResponseEntity.ok(dmService.getDmDetail(conversationId, userDetails.getUserDto().id()));
 	}
@@ -81,7 +81,7 @@ public class DmController {
 	//특정 사용자와의 대화 조회
 	@GetMapping("/with")
 	public ResponseEntity<DmResponse> getDmWithUser(
-		@AuthenticationPrincipal MoplUserDetails user,
+		@AuthenticationPrincipal CustomUserDetails user,
 		@RequestParam Long userId) {
 		return ResponseEntity.ok(dmService.getOrCreateDm(user.getUserDto().id(), userId));
 	}
@@ -89,7 +89,7 @@ public class DmController {
 	//DM 읽음 처리
 	@PostMapping("/{conversationId}/direct-messages/{directMessageId}/read")
 	public ResponseEntity<Void> readAllMessages(
-		@AuthenticationPrincipal MoplUserDetails user,
+		@AuthenticationPrincipal CustomUserDetails user,
 		@PathVariable Long conversationId) {
 		dmService.markAllAsRead(conversationId, user.getUserDto().id());
 		return ResponseEntity.ok().build();
@@ -99,7 +99,7 @@ public class DmController {
 	public ResponseEntity<Void> markMessageAsRead(
 		@PathVariable Long conversationId,
 		@PathVariable Long messageId,
-		@AuthenticationPrincipal MoplUserDetails userDetails
+		@AuthenticationPrincipal CustomUserDetails userDetails
 	) {
 		dmService.markAllAsRead(conversationId, userDetails.getUserDto().id());
 		return ResponseEntity.ok().build();
