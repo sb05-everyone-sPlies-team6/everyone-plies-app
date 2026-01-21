@@ -10,11 +10,13 @@ import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import team6.finalproject.domain.user.dto.JwtDto;
 import team6.finalproject.domain.user.dto.JwtInformation;
 import team6.finalproject.domain.user.dto.JwtUserResponse;
+import team6.finalproject.domain.user.dto.ResetPasswordRequest;
 import team6.finalproject.domain.user.service.AuthService;
 import team6.finalproject.global.security.jwt.JwtTokenProvider;
 
@@ -52,5 +54,11 @@ public class AuthController {
 
       JwtDto body = new JwtDto(userResponse, jwtInformation.getAccessToken());
     return ResponseEntity.ok(body);
+  }
+
+  @PostMapping("/reset-password")
+  public ResponseEntity<Void> resetPassword(@RequestBody ResetPasswordRequest request) {
+    authService.resetPassword(request);
+    return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
   }
 }

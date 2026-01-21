@@ -4,6 +4,7 @@ import java.io.IOException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -35,6 +36,7 @@ public class UserService {
 
   private final UserRepository userRepository;
   private final NotificationRepository notificationRepository;
+  private final PasswordEncoder passwordEncoder;
   private final JwtRegistry jwtRegistry;
   private final S3Service s3Service;
   private final ApplicationEventPublisher eventPublisher;
@@ -46,7 +48,8 @@ public class UserService {
       throw new IllegalArgumentException("Email already exists!");
     }
 
-    User user = new User(request.email(), request.password(), request.name());
+    String encodePassword = passwordEncoder.encode(request.password());
+    User user = new User(request.email(),encodePassword, request.name());
 
     userRepository.save(user);
     return UserDto.from(user);
@@ -69,13 +72,10 @@ public class UserService {
 
   @Transactional
   public void changePassword(Long userId, PasswordChangeRequest request) {
-
-    // JWT 본인확인 구현 필요
-
     User user = userRepository.findById(userId)
         .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
-    user.changePassword(request.password());
+    user.changePassword(passwordEncoder.encode(request.password()));
   }
 
   @Transactional

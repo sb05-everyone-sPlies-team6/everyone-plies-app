@@ -14,5 +14,9 @@ public record UserSummary(
                 user.getProfileImageUrl()
         );
     }
+
+    public static UserSummary unknown() {
+        return new UserSummary("unknown", "unknown", null);
+    }
 }
 
