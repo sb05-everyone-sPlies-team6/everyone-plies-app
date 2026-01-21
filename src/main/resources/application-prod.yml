@@ -18,7 +18,7 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
   batch:
     jdbc:
-      initialize-schema: always # 생성 후 never 처음엔 schema(batch) 기본 파일들이 없을 수도 있음
+      initialize-schema: always # 생성 후 never 처음엔 schema(batch) 기본 파일들이 없을 수도 있음!
   data:
     redis:
       host: ${SPRING_REDIS_HOST}
