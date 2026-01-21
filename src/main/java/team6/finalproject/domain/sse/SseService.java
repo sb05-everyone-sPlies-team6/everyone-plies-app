@@ -1,11 +1,13 @@
 package team6.finalproject.domain.sse;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -20,6 +22,8 @@ import team6.finalproject.domain.notification.repository.NotificationRepository;
 public class SseService {
 
   private static final long TIMEOUT = 60L * 60 * 1000;
+  private static final String HEARTBEAT_EVENT = "heartbeat";
+
   private final SseEmitterRepository sseEmitterRepository;
   private final NotificationRepository notificationRepository;
 
@@ -118,8 +122,8 @@ public class SseService {
       try {
         emitter.send(
             SseEmitter.event()
-                .name("direct-messages")  //프론트엔드가 리스닝하는 이벤트명..
-                .data(messageResponse)    // 전송할 데이터
+                .name("direct-messages")
+                .data(messageResponse)
         );
       } catch (Exception e) {
         log.error("Failed to send DM notification to user {}", receiverId, e);
@@ -127,5 +131,23 @@ public class SseService {
         sseEmitterRepository.delete(receiverId, emitter);
       }
     });
+  }
+
+  @Scheduled(fixedRate = 25_000)
+  public void heartbeat() {
+    log.info("[SSE] heartbeat");
+
+    List<SseEmitter> emitters = sseEmitterRepository.findAll();
+
+    for (SseEmitter emitter : emitters) {
+      try {
+        emitter.send(SseEmitter.event()
+            .name(HEARTBEAT_EVENT)
+            .data("ping"));
+      } catch (Exception e) {
+        emitter.completeWithError(e);
+        sseEmitterRepository.delete(emitter);
+      }
+    }
   }
 }
