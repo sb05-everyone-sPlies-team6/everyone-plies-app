@@ -11,13 +11,15 @@ COPY gradlew ./gradlew
 # Gradle 캐시를 위한 의존성 파일 복사
 COPY build.gradle settings.gradle ./
 
+RUN chmod +x gradlew
+
 # 의존성 다운로드
 RUN ./gradlew dependencies
 
 # 소스 코드 복사 및 빌드
 COPY src ./src
-# RUN ./gradlew build -x test # 테스트 제외함 빌드 빠름!
-RUN ./gradlew build # 테스트 포함함! 빌드 느림!!
+RUN ./gradlew build -x test # 테스트 제외함 빌드 빠름!
+# RUN ./gradlew build # 테스트 포함함! 빌드 느림!!
 
 # 런타임 스테이지
 FROM amazoncorretto:17-alpine3.21

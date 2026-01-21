@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
-import team6.finalproject.global.security.MoplUserDetails;
+import team6.finalproject.global.security.jwt.CustomUserDetails;
 
 @RestController
 @RequiredArgsConstructor
@@ -34,7 +34,7 @@ public class SseController {
 
     Object user = auth.getPrincipal();
 
-    if (user instanceof MoplUserDetails mud && mud.getUserDto() != null) {
+    if (user instanceof CustomUserDetails mud && mud.getUserDto() != null) {
       return mud.getUserDto().id();
     }
 

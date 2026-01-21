@@ -10,7 +10,7 @@ import team6.finalproject.domain.review.dto.ReviewDto;
 import team6.finalproject.domain.review.dto.ReviewListResponse;
 import team6.finalproject.domain.review.dto.ReviewUpdateRequest;
 import team6.finalproject.domain.review.service.ReviewService;
-import team6.finalproject.global.security.MoplUserDetails;
+import team6.finalproject.global.security.jwt.CustomUserDetails;
 
 @RestController
 @RequiredArgsConstructor
@@ -22,7 +22,7 @@ public class ReviewController {
     // POST /api/reviews?userId=1
     @PostMapping
     public ResponseEntity<ReviewDto> createReview(
-            @AuthenticationPrincipal MoplUserDetails userDetails,
+            @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestBody ReviewCreateRequest request
     ) {
         ReviewDto reviewDto =
@@ -40,7 +40,7 @@ public class ReviewController {
             @RequestParam(defaultValue = "10") int limit,
             @RequestParam(defaultValue = "createdAt") String sortBy,
             @RequestParam(defaultValue = "DESCENDING") String sortDirection,
-            @AuthenticationPrincipal MoplUserDetails userDetails
+            @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
         Long userId = userDetails != null ? userDetails.getUserDto().id() : null;
 
@@ -54,7 +54,7 @@ public class ReviewController {
     public ResponseEntity<ReviewDto> updateReview(
             @PathVariable Long reviewId,
             @RequestBody ReviewUpdateRequest request,
-            @AuthenticationPrincipal MoplUserDetails userDetails
+            @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
         ReviewDto updatedReview = reviewService.updateReview(
                 reviewId,
@@ -67,7 +67,7 @@ public class ReviewController {
     @DeleteMapping("/{reviewId}")
     public ResponseEntity<Void> deleteReview(
             @PathVariable Long reviewId,
-            @AuthenticationPrincipal MoplUserDetails userDetails
+            @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
         reviewService.deleteReview(reviewId, userDetails.getUserDto().id());
         return ResponseEntity.ok().build();

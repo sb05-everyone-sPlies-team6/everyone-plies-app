@@ -1,20 +1,19 @@
-package team6.finalproject.global.security;
+package team6.finalproject.global.security.oauth;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import team6.finalproject.domain.user.entity.User;
 
-public class MoplOauth2UserDetails implements UserDetails, OAuth2User {
+public class CustomOauth2UserDetails implements UserDetails, OAuth2User {
 
   private final User user;
   private Map<String, Object> attributes;
 
-  public MoplOauth2UserDetails(User user, Map<String, Object> attributes) {
+  public CustomOauth2UserDetails(User user, Map<String, Object> attributes) {
     this.user = user;
     this.attributes = attributes;
   }

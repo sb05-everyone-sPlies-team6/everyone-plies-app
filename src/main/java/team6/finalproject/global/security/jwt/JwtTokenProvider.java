@@ -11,7 +11,6 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import jakarta.servlet.http.Cookie;
 import java.nio.charset.StandardCharsets;
-import java.text.ParseException;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Date;
@@ -25,8 +24,7 @@ import org.springframework.stereotype.Component;
 import team6.finalproject.domain.user.dto.UserDto;
 import team6.finalproject.domain.user.entity.Role;
 import team6.finalproject.domain.user.entity.User;
-import team6.finalproject.global.security.MoplOauth2UserDetails;
-import team6.finalproject.global.security.MoplUserDetails;
+import team6.finalproject.global.security.oauth.CustomOauth2UserDetails;
 
 // JWT 토큰 발급, 유효성 검사, 사용자 정보를 꺼내줌
 
@@ -67,25 +65,25 @@ public class JwtTokenProvider {
     this.refreshTokenVerifier = new MACVerifier(secretBytes);
   }
 
-  public String generateAccessToken(MoplUserDetails userDetails) throws JOSEException {
+  public String generateAccessToken(CustomUserDetails userDetails) throws JOSEException {
     return generateToken(userDetails, accessTokenExpirationMs, accessTokenSigner, "access");
   }
 
-  public String generateRefreshToken(MoplUserDetails userDetails) throws JOSEException {
+  public String generateRefreshToken(CustomUserDetails userDetails) throws JOSEException {
     return generateToken(userDetails, refreshTokenExpirationMs, refreshTokenSigner, "refresh");
   }
 
-  public String generateAccessToken(MoplOauth2UserDetails userDetails) throws JOSEException {
+  public String generateAccessToken(CustomOauth2UserDetails userDetails) throws JOSEException {
     return generateToken(userDetails.getUser(), userDetails.getAuthorities(),
         accessTokenExpirationMs, accessTokenSigner, "access");
   }
 
-  public String generateRefreshToken(MoplOauth2UserDetails userDetails) throws JOSEException {
+  public String generateRefreshToken(CustomOauth2UserDetails userDetails) throws JOSEException {
     return generateToken(userDetails.getUser(), userDetails.getAuthorities(),
         refreshTokenExpirationMs, refreshTokenSigner, "refresh");
   }
 
-  private String generateToken(MoplUserDetails userDetails, long accessTokenExpirationMs,
+  private String generateToken(CustomUserDetails userDetails, long accessTokenExpirationMs,
       JWSSigner signer, String tokenType) throws JOSEException {
 
     String tokenId = UUID.randomUUID().toString();

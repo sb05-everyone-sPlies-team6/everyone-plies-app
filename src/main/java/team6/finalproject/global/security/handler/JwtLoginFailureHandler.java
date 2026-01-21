@@ -1,4 +1,4 @@
-package team6.finalproject.global.security.jwt;
+package team6.finalproject.global.security.handler;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
