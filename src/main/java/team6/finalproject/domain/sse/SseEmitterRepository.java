@@ -17,6 +17,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 public class SseEmitterRepository {
 
   private final ConcurrentMap<Long, List<SseEmitter>> data = new ConcurrentHashMap<>();
+  private final ConcurrentMap<SseEmitter, Long> reverse = new ConcurrentHashMap<>();
 
   public SseEmitter save(Long receiverId, SseEmitter emitter) {
     log.info("[SSE] register emitter userId={}", receiverId);
@@ -38,10 +39,23 @@ public class SseEmitterRepository {
     });
   }
 
+  public void delete(SseEmitter emitter) {
+    Long receiverId  = reverse.get(emitter);
+    if (receiverId != null) {
+      delete(receiverId, emitter);
+    }
+  }
+
   public List<SseEmitter> findAllByReceiverIdsIn(Collection<Long> receiverIds) {
     return data.entrySet().stream()
         .filter(entry -> receiverIds.contains(entry.getKey()))
         .map(Map.Entry::getValue)
+        .flatMap(Collection::stream)
+        .toList();
+  }
+
+  public List<SseEmitter> findAll() {
+    return data.values().stream()
         .flatMap(Collection::stream)
         .toList();
   }
