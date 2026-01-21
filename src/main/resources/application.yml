@@ -10,7 +10,7 @@ spring:
     name: final-project
     version: 1.0.0
   profiles:
-    active: dev   # dev, prod 선택 가능
+    active: prod   # dev, prod 선택 가능
   servlet:
     multipart:
       maxFileSize: 100MB # 파일 하나의 최대 크기
