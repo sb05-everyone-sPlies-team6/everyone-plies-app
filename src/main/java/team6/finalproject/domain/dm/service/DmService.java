@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,6 +40,8 @@ public class DmService {
 	private final UserRepository userRepository;
 	private final NotificationRepository notificationRepository;
 	private final SseService sseService;
+	private final RedisTemplate<String, Object> redisTemplate;
+	private static final String DM_CACHE_KEY = "dm:cache:";
 
 	//대화방 생성 또는 조회
 	@Transactional
@@ -151,6 +154,11 @@ public class DmService {
 		NotificationDto notificationDto = NotificationDto.from(notification);
 
 		sseService.send(List.of(receiverId), "notifications", notificationDto);
+
+		// Redis 캐시에 최근 메시지 추가
+		String cacheKey = DM_CACHE_KEY + dmId;
+		redisTemplate.opsForZSet().add(cacheKey, response, System.currentTimeMillis());
+		redisTemplate.opsForZSet().removeRange(cacheKey, 0, -101);
 
 		return response;
 	}
