@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import team6.finalproject.domain.dm.dto.CursorResponse;
 import team6.finalproject.domain.dm.dto.DirectMessageSendRequest;
 import team6.finalproject.domain.dm.dto.DmResponse;
@@ -32,6 +33,7 @@ import team6.finalproject.domain.user.repository.UserRepository;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
+@Slf4j
 public class DmService {
 
 	private final DmRepository dmRepository;
@@ -74,6 +76,34 @@ public class DmService {
 
 	//DM 메시지 목록 조회
 	public CursorResponse<MessageResponse> getMessages(Long dmId, Long cursor, int limit) {
+		String cacheKey = DM_CACHE_KEY + dmId;
+
+		// [핵심 추가] 1. 첫 페이지 조회(cursor가 없을 때)는 Redis에서 먼저 가져오기
+		if (cursor == null) {
+			try {
+				List<Object> cachedRaw = redisTemplate.opsForZSet()
+					.reverseRange(cacheKey, 0, limit - 1)
+					.stream().toList();
+
+				if (cachedRaw != null && !cachedRaw.isEmpty()) {
+					// Redis 데이터를 객체로 변환 (아까 수정한 Serializer 활용)
+					List<MessageResponse> cachedMessages = cachedRaw.stream()
+						.map(obj -> (MessageResponse) obj)
+						.toList();
+
+					return new CursorResponse<>(
+						cachedMessages,
+						cachedMessages.get(cachedMessages.size() - 1).id().toString(),
+						cachedMessages.get(cachedMessages.size() - 1).id(),
+						cachedMessages.size() >= limit,
+						0L, "createdAt", "DESCENDING"
+					);
+				}
+			} catch (Exception e) {
+				log.error("Redis 캐시 조회 실패, DB로 전환: {}", e.getMessage());
+			}
+		}
+
 		List<MessageResponse> fetchedMessages = dmRepository.findMessagesByCursor(dmId, cursor, limit);
 		List<MessageResponse> messages = new ArrayList<>(fetchedMessages);
 
