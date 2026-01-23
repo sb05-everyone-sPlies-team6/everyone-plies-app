@@ -215,6 +215,7 @@ public class PlaylistService {
             playList.getOwner().getId());
 
         List<Notification> notifications = followers.stream()
+            .filter(follower -> !follower.getId().equals(playList.getOwner().getId()))
             .map(receiver -> new Notification(
                 receiver,
                 "PLAYLIST_ADDED",
@@ -279,13 +280,13 @@ public class PlaylistService {
             "PLAYLIST SUBSCRIBE",
             user.getName() + "님이 회원님의 플레이리스트를 구독했습니다.",
             Level.INFO,
-            playlist.getOwner().getId(),
+            playlistId,
             TargetType.PLAYLIST_SUBSCRIBED
         );
 
-        notificationRepository.save(notification);
-        NotificationDto saved = NotificationDto.from(notification);
-        eventPublisher.publishEvent(saved);
+        Notification saved = notificationRepository.save(notification);
+        NotificationDto dto = NotificationDto.from(saved);
+        eventPublisher.publishEvent(dto);
     }
 
     @Transactional

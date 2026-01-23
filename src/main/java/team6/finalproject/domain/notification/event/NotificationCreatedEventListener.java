@@ -22,7 +22,7 @@ public class NotificationCreatedEventListener {
     log.info("[Event] receiver={} messageId={}", event.dto().receiverId(), event.dto().id());
 
     sseService.send(
-        List.of(event.dto().id()),
+        List.of(event.dto().receiverId()),
         "notifications",
         event.dto()
     );
