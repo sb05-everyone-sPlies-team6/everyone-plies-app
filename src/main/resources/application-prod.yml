@@ -3,8 +3,6 @@ spring:
     import: optional:dotenv:.
     activate:
       on-profile: prod
-  session:
-    store-type: redis
 
   batch:
     jdbc:
