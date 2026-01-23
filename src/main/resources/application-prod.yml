@@ -3,6 +3,8 @@ spring:
     import: optional:dotenv:.
     activate:
       on-profile: prod
+  session:
+    store-type: redis
 
   batch:
     jdbc:
@@ -24,7 +26,7 @@ spring:
       driver-class-name: com.mysql.cj.jdbc.Driver
       # 최대/최소 커넥션 개수
       maximum-pool-size: 20
-      minimum-idle: 20
+      minimum-idle: 5
 
       # 커넥션 획득 대기 시간
       connection-timeout: 30000
@@ -75,6 +77,11 @@ management:
 
 server:
   port: 8080
+  servlet:
+    session:
+      cookie:
+        secure: false # HTTPS 확장 후 true
+        same-site: lax # HTTPS 확장 후 none
 
 file:
   upload-dir: ${FILE_UPLOAD_DIR:/app/uploads}
