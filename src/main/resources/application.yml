@@ -62,9 +62,8 @@ spring:
     redis:
       host: ${SPRING_REDIS_HOST}
       port: ${SPRING_REDIS_PORT}
-      client-type: lettuce
       ssl:
-        enabled: false
+        enabled: true
 
   # JPA
   jpa:
