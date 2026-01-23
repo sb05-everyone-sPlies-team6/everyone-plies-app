@@ -1,5 +1,6 @@
 package team6.finalproject.domain.follow.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -28,7 +29,7 @@ public class FollowController {
   private final FollowService followService;
 
   @PostMapping
-  public ResponseEntity<FollowDto> create(@RequestBody FollowRequest request) {
+  public ResponseEntity<FollowDto> create(@RequestBody @Valid FollowRequest request) {
 //    long t0 = System.nanoTime();
     FollowDto followDto = followService.create(currentUserId(), request);
 //    long totalMs = (System.nanoTime() - t0) / 1_000_000;
