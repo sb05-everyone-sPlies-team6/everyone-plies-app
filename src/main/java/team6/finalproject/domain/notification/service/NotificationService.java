@@ -15,8 +15,8 @@ public class NotificationService {
 
   private final NotificationRepository notificationRepository;
 
-  public CursorResponse<NotificationDto> findAll(String cursor, Long idAfter, int limit, String sortDirection, String sortBy) {
-    return notificationRepository.findAll(cursor, idAfter, limit, sortDirection, sortBy);
+  public CursorResponse<NotificationDto> findAll(Long userId, String cursor, Long idAfter, int limit, String sortDirection, String sortBy) {
+    return notificationRepository.findAll(userId, cursor, idAfter, limit, sortDirection, sortBy);
   }
 
   public void delete(Long id) {
