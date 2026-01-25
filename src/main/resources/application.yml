@@ -62,8 +62,6 @@ spring:
     redis:
       host: ${SPRING_REDIS_HOST}
       port: ${SPRING_REDIS_PORT}
-      ssl:
-        enabled: true
 
   # JPA
   jpa:
