@@ -19,18 +19,19 @@ spring:
     allow-bean-definition-overriding: true
   data:
     redis:
-      host: ${REDIS_HOST}
-      port: ${REDIS_PORT}
-      ssl:
-        enabled: true
-      timeout: 2000ms
+      # Elasticache Cluster 엔드포인트
+      cluster:
+        nodes:
+          - ${REDIS_HOST}:${REDIS_PORT}  # 예: clustercfg.redis1.jvzvvs.apn2.cache.amazonaws.com:6379
+      timeout: 2000ms  # Lettuce 커맨드 타임아웃
       lettuce:
-        shutdown-timeout: 100ms
         pool:
           max-active: 10
           max-idle: 5
           min-idle: 1
           max-wait: 1000ms
+      ssl:
+        enabled: true
   security:
     oauth2:
       client:
