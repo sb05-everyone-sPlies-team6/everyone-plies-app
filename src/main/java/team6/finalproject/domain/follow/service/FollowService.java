@@ -76,7 +76,7 @@ public class FollowService {
 
   @Transactional
   public void delete(Long followerId, Long followId) {
-    Follow follow = followRepository.findById(followerId)
+    Follow follow = followRepository.findById(followId)
         .orElseThrow(() -> new NoSuchElementException("팔로우가 존재하지 않습니다."));
 
     if (!follow.getFollower().getId().equals(followerId)) {

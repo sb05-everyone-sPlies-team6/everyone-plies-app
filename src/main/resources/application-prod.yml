@@ -23,15 +23,15 @@ spring:
       password: ${DB_PASSWORD}
       driver-class-name: com.mysql.cj.jdbc.Driver
       # 최대/최소 커넥션 개수
-      maximum-pool-size: 3
-      minimum-idle: 1
+      maximum-pool-size: 20
+      minimum-idle: 5
 
       # 커넥션 획득 대기 시간
       connection-timeout: 30000
       # 커넥션 최대 수명
-      max-lifetime: 180000
+      max-lifetime: 1800000
       # 유휴 커넥션 폐기 시간
-      idle-timeout: 60000
+      idle-timeout: 600000
 
       # 성능 최적화를 위한 내부 쿼리 캐싱 설정
       prep-stmt-cache-size: 250
@@ -78,6 +78,11 @@ management:
 
 server:
   port: 8080
+  servlet:
+    session:
+      cookie:
+        secure: false # HTTPS 확장 후 true
+        same-site: lax # HTTPS 확장 후 none
   shutdown: graceful
 
 file:
