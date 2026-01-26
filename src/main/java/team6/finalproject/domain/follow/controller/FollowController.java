@@ -1,6 +1,8 @@
 package team6.finalproject.domain.follow.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -19,6 +21,7 @@ import team6.finalproject.domain.follow.service.FollowService;
 import team6.finalproject.global.security.jwt.CustomUserDetails;
 
 @RestController
+@Slf4j
 @RequiredArgsConstructor
 @RequestMapping("api/follows")
 public class FollowController {
@@ -26,8 +29,15 @@ public class FollowController {
   private final FollowService followService;
 
   @PostMapping
-  public ResponseEntity<FollowDto> create(@RequestBody FollowRequest request) {
+  public ResponseEntity<FollowDto> create(@RequestBody @Valid FollowRequest request) {
+//    long t0 = System.nanoTime();
     FollowDto followDto = followService.create(currentUserId(), request);
+//    long totalMs = (System.nanoTime() - t0) / 1_000_000;
+//    log.info("[FOLLOW][SYNC] TOTAL={}ms follower={} followee={}",
+//        totalMs, request.followeeId(), request.followeeId()
+//    );
+
+
     return ResponseEntity.status(HttpStatus.CREATED).body(followDto);
   }
 
