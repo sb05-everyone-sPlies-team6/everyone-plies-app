@@ -17,6 +17,10 @@ spring:
       maxRequestSize: 300MB  # 한 번에 최대 업로드 가능 용량
   main:
     allow-bean-definition-overriding: true
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT:6379}
   security:
     oauth2:
       client:
@@ -35,7 +39,7 @@ spring:
               - profile_nickname
               - profile_image
             authorization-grant-type: authorization_code
-            redirect-uri: http://mopl-project-1324302280.ap-northeast-2.elb.amazonaws.com/login/oauth2/code/kakao
+            redirect-uri: http://localhost:8080/login/oauth2/code/kakao
             client-name: Kakao
             client-authentication-method: client_secret_post
 
@@ -58,15 +62,10 @@ spring:
           starttls:
             enable: true
 
-  data:
-    redis:
-      host: ${SPRING_REDIS_HOST}
-      port: ${SPRING_REDIS_PORT}
-
   # JPA
   jpa:
     hibernate:
-      ddl-auto: validate # 없다고 뜨면 update 후 validate
+      ddl-auto: validate
       # create, create-drop, update, validate, none
     show-sql: true
     properties:
