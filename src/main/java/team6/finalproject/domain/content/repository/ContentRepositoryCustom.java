@@ -14,6 +14,7 @@ public interface ContentRepositoryCustom {
 		String sortBy,
 		String sortDirection,
 		String typeEqual,
-		String keywordLike
+		String keywordLike,
+		String sourceEqual
 	);
 }

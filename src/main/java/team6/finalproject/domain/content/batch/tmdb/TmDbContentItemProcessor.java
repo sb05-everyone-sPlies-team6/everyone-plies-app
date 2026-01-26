@@ -21,6 +21,10 @@ public class TmDbContentItemProcessor implements ItemProcessor<TmdbMovieDto, Con
 
 	@Override
 	public ContentBatchDto process(TmdbMovieDto dto) {
+		if ("SPORTS".equals(contentTypeParam)) {
+			return null;
+		}
+
 		// getEffectiveTitle()을 사용하여 title 혹은 name을 가져옴
 		String typeStr = (contentTypeParam != null) ? contentTypeParam : "MOVIE";
 

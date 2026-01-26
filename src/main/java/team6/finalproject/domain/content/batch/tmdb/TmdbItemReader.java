@@ -7,7 +7,8 @@ import team6.finalproject.domain.content.api.TmdbMovieDto;
 import team6.finalproject.domain.content.api.TmdbMovieResponse;
 
 import org.springframework.batch.core.configuration.annotation.StepScope;
-import org.springframework.batch.item.ItemReader;
+import org.springframework.batch.item.ExecutionContext;
+import org.springframework.batch.item.ItemStreamReader;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -18,7 +19,7 @@ import java.util.List;
 @Component
 @StepScope // 이제 JobParameter를 인식할 수 있습니다.
 @RequiredArgsConstructor
-public class TmdbItemReader implements ItemReader<TmdbMovieDto> {
+public class TmdbItemReader implements ItemStreamReader<TmdbMovieDto> {
 
 	private final TmdbFeignClient tmdbFeignClient;
 
@@ -29,13 +30,6 @@ public class TmdbItemReader implements ItemReader<TmdbMovieDto> {
 	@Value("#{jobParameters['contentType']}")
 	private String contentTypeParam;
 
-	/*
-	// JobParameters에서 'limit' 값을 가져옴. (기본 10)
-	@Value("#{jobParameters['limit'] ?: 10}")
-	private Long limit;
-
-	 */
-
 	private int nextApiPage = 1;
 	private List<TmdbMovieDto> resultsBuffer = new ArrayList<>();
 	private int totalPages = 1;
@@ -44,16 +38,7 @@ public class TmdbItemReader implements ItemReader<TmdbMovieDto> {
 	@Override
 	public TmdbMovieDto read() {
 
-		/*
-		// 1. 만약 목표한 limit 개수에 도달했다면 null 반환 (배치 종료)
-		if (processedCount >= limit) {
-			log.info("### 목표치 {}개 도달로 읽기 종료 ###", limit);
-			return null;
-		}
-
-		 */
-
-		// 2. 버퍼가 비어있으면 다음 페이지 호출
+		//버퍼가 비어있으면 다음 페이지 호출
 		if (resultsBuffer.isEmpty()) {
 			if (nextApiPage > totalPages) {
 				return null;
@@ -61,7 +46,7 @@ public class TmdbItemReader implements ItemReader<TmdbMovieDto> {
 			fetchNextPage();
 		}
 
-		// 3. 버퍼에서 하나 꺼내면서 카운트 증가
+		//버퍼에서 하나 꺼내면서 카운트 증가
 		if (!resultsBuffer.isEmpty()) {
 			processedCount++;
 			return resultsBuffer.remove(0);
@@ -70,8 +55,16 @@ public class TmdbItemReader implements ItemReader<TmdbMovieDto> {
 		return null;
 	}
 
+	@Override
+	public void open(ExecutionContext executionContext) {
+		this.resultsBuffer.clear();
+		this.nextApiPage = 1;
+		this.processedCount = 0;
+		log.info("### {} Reader 초기화 완료 ###", contentTypeParam);
+	}
+
 	private void fetchNextPage() {
-		log.info("### TMDB API 호출 (타입: {}) - Page: {} ###", contentTypeParam, nextApiPage);
+		//log.info("### TMDB API 호출 (타입: {}) - Page: {} ###", contentTypeParam, nextApiPage);
 
 		try {
 			TmdbMovieResponse response;
