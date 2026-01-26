@@ -21,6 +21,8 @@ spring:
     redis:
       host: ${REDIS_HOST}
       port: ${REDIS_PORT}
+      ssl:
+        enabled: true
       timeout: 2000ms
       lettuce:
         shutdown-timeout: 100ms
