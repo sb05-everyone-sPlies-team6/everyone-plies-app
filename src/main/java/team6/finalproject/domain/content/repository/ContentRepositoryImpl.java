@@ -1,17 +1,15 @@
 package team6.finalproject.domain.content.repository;
 
 import java.util.List;
-
 import com.querydsl.core.types.Order;
-
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-
 import lombok.RequiredArgsConstructor;
 import team6.finalproject.domain.content.entity.content.Content;
 import team6.finalproject.domain.content.entity.content.ContentType;
 import team6.finalproject.domain.content.entity.content.QContent;
+import team6.finalproject.domain.content.entity.content.SourceType;
 import team6.finalproject.domain.content.entity.tag.QContentTag;
 import team6.finalproject.domain.content.entity.tag.QTag;
 
@@ -19,81 +17,87 @@ import team6.finalproject.domain.content.entity.tag.QTag;
 public class ContentRepositoryImpl implements ContentRepositoryCustom {
 	private final JPAQueryFactory queryFactory;
 
+	private BooleanExpression eqSourceType(String sourceStr) {
+		if (sourceStr == null || sourceStr.isEmpty() || sourceStr.equalsIgnoreCase("all")) {
+			return null;
+		}
+
+		try {
+			SourceType sourceType = SourceType.valueOf(sourceStr.toUpperCase());
+			return QContent.content.sourceType.eq(sourceType);
+		} catch (IllegalArgumentException e) {
+			return null;
+		}
+	}
+
 	@Override
 	public List<Content> findAllByCursor(
-		String cursor,
-		String idAfter,
-		int limit,
-		List<String> tagsIn,
-		String sortBy,
-		String sortDirection,
-		String typeEqual,
-		String keywordLike) {
+		String cursor, String idAfter, int limit, List<String> tagsIn,
+		String sortBy, String sortDirection, String typeEqual, String keywordLike, String sourceEqual) {
 
 		QContent content = QContent.content;
-		QContentTag contentTag = QContentTag.contentTag;
-		QTag tag = QTag.tag;
 
 		return queryFactory.selectFrom(content)
 			.distinct()
-			.leftJoin(contentTag).on(contentTag.content.eq(content))
-			.leftJoin(tag).on(contentTag.tag.eq(tag))
+			.leftJoin(QContentTag.contentTag).on(QContentTag.contentTag.content.eq(content))
+			.leftJoin(QTag.tag).on(QContentTag.contentTag.tag.eq(QTag.tag))
 			.where(
-				cursorCondition(cursor, idAfter, sortBy, sortDirection), // 수정된 메서드 호출
+				cursorCondition(cursor, sortBy, sortDirection), // 복합 커서 조건
 				eqType(typeEqual),
+				eqSourceType(sourceEqual),
 				containsKeyword(keywordLike),
-				inTags(tagsIn)
+				inTags(tagsIn) // 태그 필터링
 			)
 			.orderBy(getOrderSpecifier(sortBy, sortDirection))
 			.limit(limit + 1)
 			.fetch();
 	}
 
-	private BooleanExpression inTags(List<String> tagsIn) {
-		if (tagsIn == null || tagsIn.isEmpty()) {
-			return null;
-		}
-		return QTag.tag.name.in(tagsIn);
-	}
-
-	// 커서 조건 처리 (String 타입을 Long으로 변환)
-	private BooleanExpression cursorCondition(String cursor, String idAfter, String sortBy, String sortDirection) {
+	private BooleanExpression cursorCondition(String cursor, String sortBy, String sortDirection) {
 		if (cursor == null || cursor.isBlank()) return null;
 
 		QContent content = QContent.content;
+		boolean isDesc = !"ASCENDING".equalsIgnoreCase(sortDirection);
 
 		try {
-			long cursorId = Long.parseLong(cursor);
+			if ("rate".equals(sortBy)) {
+				String[] parts = cursor.split("_");
+				// IDE의 가이드대로 float로 파싱합니다.
+				float lastRate = Float.parseFloat(parts[0]);
+				long lastId = Long.parseLong(parts[1]); // lastId를 이 블록 안에서 선언
 
-			//기본 정렬(최신순 등 ID 기반)일 때
-			if (sortBy == null || sortBy.equals("createdAt") || sortBy.equals("contentId")) {
-				return content.contentId.lt(cursorId);
+				return isDesc
+					? content.totalRating.lt(lastRate).or(content.totalRating.eq(lastRate).and(content.contentId.lt(lastId)))
+					: content.totalRating.gt(lastRate).or(content.totalRating.eq(lastRate).and(content.contentId.gt(lastId)));
 			}
 
-			return content.contentId.lt(cursorId);
+			if ("watcherCount".equals(sortBy)) {
+				String[] parts = cursor.split("_");
+				int lastCount = Integer.parseInt(parts[0]);
+				long lastId = Long.parseLong(parts[1]); // lastId를 이 블록 안에서 선언
 
-		} catch (NumberFormatException e) {
+				return isDesc
+					? content.totalReviews.lt(lastCount).or(content.totalReviews.eq(lastCount).and(content.contentId.lt(lastId)))
+					: content.totalReviews.gt(lastCount).or(content.totalReviews.eq(lastCount).and(content.contentId.gt(lastId)));
+			}
+
+			// [CASE 3] 기본 ID 기반 커서
+			long lastIdOnly = Long.parseLong(cursor);
+			return isDesc ? content.contentId.lt(lastIdOnly) : content.contentId.gt(lastIdOnly);
+
+		} catch (Exception e) {
 			return null;
 		}
 	}
 
-	private OrderSpecifier<?> getOrderSpecifier(String sortBy, String sortDirection) {
-		QContent content = QContent.content;
-		Order order = "ASCENDING".equalsIgnoreCase(sortDirection) ? Order.ASC : Order.DESC;
-
-		if (sortBy == null) return new OrderSpecifier<>(Order.DESC, content.contentId);
-
-		return switch (sortBy) {
-			case "rate" -> new OrderSpecifier<>(order, content.totalRating);
-			case "watcherCount" -> new OrderSpecifier<>(order, content.totalReviews);
-			default -> new OrderSpecifier<>(order, content.contentId);
-		};
+	// 2. 태그 필터링
+	private BooleanExpression inTags(List<String> tagsIn) {
+		if (tagsIn == null || tagsIn.isEmpty()) return null;
+		return QTag.tag.name.in(tagsIn);
 	}
 
-	// 프론트의 소문자 타입을 백엔드 Enum으로 매핑하여 필터링
 	private BooleanExpression eqType(String typeStr) {
 		if (typeStr == null || typeStr.isEmpty() || typeStr.equalsIgnoreCase("all")) return null;
-
 		ContentType type = switch (typeStr) {
 			case "movie" -> ContentType.MOVIE;
 			case "tvSeries" -> ContentType.DRAMA;
@@ -103,13 +107,21 @@ public class ContentRepositoryImpl implements ContentRepositoryCustom {
 		return type != null ? QContent.content.type.eq(type) : null;
 	}
 
-	private BooleanExpression ltCursorId(Long cursorId, String sortBy, String sortDirection) {
-		if (cursorId == null) return null;
-		// 현재는 ID 기반 커서만 처리 (정렬 기준이 바뀌면 커서 로직도 복잡해지지만, 우선 ID 기준 유지)
-		return QContent.content.contentId.lt(cursorId);
-	}
-
 	private BooleanExpression containsKeyword(String keyword) {
 		return keyword != null ? QContent.content.title.containsIgnoreCase(keyword) : null;
+	}
+
+	private OrderSpecifier<?> getOrderSpecifier(String sortBy, String sortDirection) {
+		QContent content = QContent.content;
+		Order order = "ASCENDING".equalsIgnoreCase(sortDirection) ? Order.ASC : Order.DESC;
+
+		if (sortBy == null) return new OrderSpecifier<>(Order.DESC, content.contentId);
+		return switch (sortBy) {
+			case "rate" -> new OrderSpecifier<>(order, content.totalRating);
+			case "watcherCount" -> order == Order.DESC
+				? new OrderSpecifier<>(Order.DESC, content.totalReviews)
+				: new OrderSpecifier<>(Order.ASC, content.totalReviews);
+			default -> new OrderSpecifier<>(order, content.contentId);
+		};
 	}
 }

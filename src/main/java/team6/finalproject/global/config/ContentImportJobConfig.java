@@ -34,10 +34,9 @@ public class ContentImportJobConfig {
 	@Bean
 	public Job contentImportJob() {
 		return new JobBuilder("contentImportJob", jobRepository)
-			.start(tmdbMovieStep())
-			.next(tmdbTvStep())
-			.next(sportsDbStep())
-			//.start(sportsDbStep())
+			.start(tmdbMovieStep()).on("COMPLETED").to(tmdbTvStep()) // TMDB 관련일 때만
+			.from(tmdbTvStep()).on("COMPLETED").to(sportsDbStep())
+			.end()
 			.build();
 	}
 
