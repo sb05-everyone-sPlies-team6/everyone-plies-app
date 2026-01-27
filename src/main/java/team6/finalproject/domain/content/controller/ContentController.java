@@ -34,17 +34,18 @@ public class ContentController {
 	//콘텐츠 목록 조회 (커서 페이지네이션)
 	@GetMapping
 	public ResponseEntity<CursorResponse<ContentResponse>> getContents(
-		@RequestParam(required = false) String cursor,     // Long -> String
-		@RequestParam(required = false) String idAfter,       // idAfter 추가
+		@RequestParam(required = false) String cursor,
+		@RequestParam(required = false) String idAfter,
 		@RequestParam(defaultValue = "10") int limit,
-		@RequestParam(required = false) List<String> tagsIn, // tagsIn 추가
+		@RequestParam(required = false) List<String> tagsIn,
 		@RequestParam(required = false) String sortBy,
 		@RequestParam(required = false) String sortDirection,
 		@RequestParam(required = false) String typeEqual,
-		@RequestParam(required = false) String keywordLike) {
+		@RequestParam(required = false) String keywordLike,
+		@RequestParam(required = false) String sourceEqual) {
 
 		return ResponseEntity.ok(contentService.getContents(
-			cursor, idAfter, limit, tagsIn, sortBy, sortDirection, typeEqual, keywordLike
+			cursor, idAfter, limit, tagsIn, sortBy, sortDirection, typeEqual, keywordLike, sourceEqual
 		));
 	}
 	//콘텐츠 생성 (어드민)
@@ -72,7 +73,7 @@ public class ContentController {
 		@RequestPart(value = "thumbnail", required = false) MultipartFile file) {
 
 		ContentPatchRequest patchRequest = new ContentPatchRequest();
-		patchRequest.setRequest(detail); // 내부 Detail 설정
+		patchRequest.setRequest(detail);
 
 		return ResponseEntity.ok(contentService.patchContent(contentId, patchRequest, file));
 	}
@@ -81,6 +82,6 @@ public class ContentController {
 	@DeleteMapping("/{contentId}")
 	public ResponseEntity<Void> deleteContent(@PathVariable Long contentId) {
 		contentService.deleteContent(contentId);
-		return ResponseEntity.ok().build(); //200성공
+		return ResponseEntity.ok().build();
 	}
 }

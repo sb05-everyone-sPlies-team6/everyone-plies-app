@@ -3,6 +3,9 @@ package team6.finalproject.domain.dm.controller;
 import java.security.Principal;
 
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -25,6 +28,8 @@ public class DmMessageController {
 	private final DmService dmService;
 	private final SseService sseService;
 	private final UserService userService;
+	private final RedisTemplate<String, Object> redisTemplate;
+	private final ChannelTopic dmTopic;
 
 	//실시간 메시지 전송
 	@MessageMapping("/conversations/{dmId}/direct-messages")
@@ -33,11 +38,9 @@ public class DmMessageController {
 		Principal principal) {
 
 		User sender = userService.getUserByEmail(principal.getName());
-		Long senderId = sender.getId();
+		MessageResponse response = dmService.saveMessage(dmId, sender.getId(), request);
 
-		MessageResponse response = dmService.saveMessage(dmId, senderId, request);
-
-		messagingTemplate.convertAndSend("/sub/conversations/" + dmId + "/direct-messages", response);
+		redisTemplate.convertAndSend(dmTopic.getTopic(), response);
 
 		sseService.sendDmNotification(response.receiver().userId(), response);
 	}

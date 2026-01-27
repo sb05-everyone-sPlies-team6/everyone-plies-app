@@ -23,7 +23,7 @@ public class NotificationQueryRepositoryImpl implements NotificationQueryReposit
   private static final String SORT_BY = "createdAt";
 
   @Override
-  public CursorResponse<NotificationDto> findAll(String cursor, Long idAfter, int limit,
+  public CursorResponse<NotificationDto> findAll(Long userId, String cursor, Long idAfter, int limit,
       String sortDirection, String sortBy) {
 
     String sortB = SORT_BY;
@@ -32,6 +32,7 @@ public class NotificationQueryRepositoryImpl implements NotificationQueryReposit
     boolean asc = "ASCENDING".equalsIgnoreCase(sortD);
 
     BooleanBuilder booleanBuilder = new BooleanBuilder();
+    booleanBuilder.and(notification.user.id.eq(userId));
 
     BooleanExpression cursorExpr = cursorPredicate(cursor, idAfter, asc);
     if (cursorExpr != null) {
@@ -59,6 +60,7 @@ public class NotificationQueryRepositoryImpl implements NotificationQueryReposit
     Long total = queryFactory
         .select(notification.count())
         .from(notification)
+        .where(notification.user.id.eq(userId))
         .fetchOne();
     long totalCount = (total == null) ? 0L : total;
 

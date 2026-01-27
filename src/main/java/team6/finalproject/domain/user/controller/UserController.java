@@ -55,12 +55,6 @@ public class UserController {
     return ResponseEntity.status(HttpStatus.OK).body(all);
   }
 
-//  @GetMapping("/{userId}")
-//  public ResponseEntity<UserDto> findById(@PathVariable Long userId) {
-//    UserDto user = userService.findById(userId);
-//    return ResponseEntity.status(HttpStatus.OK).body(user);
-//  }
-
     @GetMapping("/{userId}")
     public ResponseEntity<UserProfileResponse> getUserProfile(@PathVariable Long userId) {
         UserProfileResponse response = userService.findByIdForProfile(userId);
@@ -83,14 +77,14 @@ public class UserController {
 
   @PreAuthorize("hasRole('ADMIN')")
   @PatchMapping("{userId}/role")
-  public ResponseEntity<Void>  updateRole(@PathVariable Long userId, @RequestBody UserRoleUpdateRequest request) {
+  public ResponseEntity<Void>  updateRole(@PathVariable Long userId, @RequestBody @Valid UserRoleUpdateRequest request) {
     userService.updateRole(userId, request);
     return ResponseEntity.status(HttpStatus.OK).build();
   }
 
   @PreAuthorize("hasRole('ADMIN')")
   @PatchMapping("{userId}/locked")
-  public ResponseEntity<Void> updateLock(@PathVariable Long userId, @RequestBody UserLockUpdateRequest request) {
+  public ResponseEntity<Void> updateLock(@PathVariable Long userId, @RequestBody @Valid UserLockUpdateRequest request) {
     userService.updateLocked(userId, request);
     return ResponseEntity.status(HttpStatus.OK).build();
   }
