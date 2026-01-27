@@ -19,8 +19,19 @@ spring:
     allow-bean-definition-overriding: true
   data:
     redis:
-      host: ${REDIS_HOST}
-      port: ${REDIS_PORT:6379}
+      # Elasticache Cluster 엔드포인트
+      cluster:
+        nodes:
+          - ${REDIS_HOST}:${REDIS_PORT}
+      timeout: 2000ms  # Lettuce 커맨드 타임아웃
+      lettuce:
+        pool:
+          max-active: 10
+          max-idle: 5
+          min-idle: 1
+          max-wait: 1000ms
+      ssl:
+        enabled: true
   security:
     oauth2:
       client:
@@ -39,7 +50,7 @@ spring:
               - profile_nickname
               - profile_image
             authorization-grant-type: authorization_code
-            redirect-uri: http://localhost:8080/login/oauth2/code/kakao
+            redirect-uri: https://mopl-final.shop/login/oauth2/code/kakao
             client-name: Kakao
             client-authentication-method: client_secret_post
 
