@@ -64,6 +64,9 @@ spring:
           starttls:
             enable: true
 
+  lifecycle:
+    timeout-per-shutdown-phase: 30s
+
 management:
   endpoints:
     web:
@@ -80,6 +83,7 @@ server:
       cookie:
         secure: false # HTTPS 확장 후 true
         same-site: lax # HTTPS 확장 후 none
+  shutdown: graceful
 
 file:
   upload-dir: ${FILE_UPLOAD_DIR:/app/uploads}

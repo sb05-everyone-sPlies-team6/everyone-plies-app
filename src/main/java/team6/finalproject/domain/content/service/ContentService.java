@@ -25,7 +25,6 @@ import team6.finalproject.domain.content.repository.TagRepository;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
 public class ContentService {
 
 	private final ContentRepository contentRepository;
@@ -33,12 +32,17 @@ public class ContentService {
 	private final TagRepository tagRepository;
 	private final S3Service s3Service;
 
+	@Transactional(readOnly = true)
 	public CursorResponse<ContentResponse> getContents(
 		String cursor, String idAfter, int limit, List<String> tagsIn,
-		String sortBy, String sortDirection, String typeEqual, String keywordLike) {
+		String sortBy, String sortDirection, String typeEqual, String keywordLike, String sourceEqual) {
+		String effectiveSource = sourceEqual;
+		if ("sport".equalsIgnoreCase(typeEqual)) {
+			effectiveSource = "THE_SPORTS_DB";
+		}
 
 		List<Content> contents = contentRepository.findAllByCursor(
-			cursor, idAfter, limit, tagsIn, sortBy, sortDirection, typeEqual, keywordLike
+			cursor, idAfter, limit, tagsIn, sortBy, sortDirection, typeEqual, keywordLike, effectiveSource
 		);
 
 		boolean hasNext = contents.size() > limit;
@@ -53,18 +57,22 @@ public class ContentService {
 
 		//다음 커서 및 보조 커서 설정
 		String nextCursor = null;
-		String nextIdAfter = null;
-
 		if (hasNext) {
 			Content lastItem = resultContents.get(limit - 1);
-			nextCursor = lastItem.getContentId().toString();
-			nextIdAfter = lastItem.getExternalId(); // externalId가 UUID 문자열인 경우
+
+			if ("rate".equals(sortBy)) {
+				nextCursor = lastItem.getTotalRating() + "_" + lastItem.getContentId();
+			} else if ("watcherCount".equals(sortBy)) {
+				nextCursor = lastItem.getTotalReviews() + "_" + lastItem.getContentId();
+			} else {
+				nextCursor = lastItem.getContentId().toString();
+			}
 		}
 
 		return new CursorResponse<>(
 			data,
 			nextCursor,
-			nextIdAfter,
+			hasNext ? resultContents.get(limit - 1).getContentId().toString() : null, // 보조 식별자
 			hasNext,
 			contentRepository.count(),
 			sortBy != null ? sortBy : "createdAt",

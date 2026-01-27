@@ -1,7 +1,6 @@
 package team6.finalproject.domain.content.repository;
 
 import java.util.List;
-import java.util.UUID;
 
 import team6.finalproject.domain.content.entity.content.Content;
 
@@ -14,6 +13,7 @@ public interface ContentRepositoryCustom {
 		String sortBy,
 		String sortDirection,
 		String typeEqual,
-		String keywordLike
+		String keywordLike,
+		String sourceEqual
 	);
 }
