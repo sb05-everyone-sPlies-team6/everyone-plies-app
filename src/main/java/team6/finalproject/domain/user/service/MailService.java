@@ -18,7 +18,7 @@ public class MailService {
   @Value("${spring.mail.username}")
   private String from;
 
-  @Async("notiExecutor")
+  // @Async("notiExecutor")
   public void sendMail(String to, String tempPassword, long ttlSeconds) {
     try {
       SimpleMailMessage message = new SimpleMailMessage();
