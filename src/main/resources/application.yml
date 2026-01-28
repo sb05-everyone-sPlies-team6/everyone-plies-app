@@ -46,7 +46,6 @@ spring:
             client-id: ${KAKAO_CLIENT_ID}
             client-secret: ${KAKAO_CLIENT_SECRET}
             scope:
-              # - account_email
               - profile_nickname
               - profile_image
             authorization-grant-type: authorization_code

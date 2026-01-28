@@ -43,6 +43,7 @@ public class PlaylistService {
     private final PlaylistSubscriptionRepository playlistSubscriptionRepository;
     private final NotificationRepository notificationRepository;
     private final FollowRepository followRepository;
+    private final PlaylistSubscriptionRepository subscriptionRepository;
     private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
@@ -80,9 +81,9 @@ public class PlaylistService {
             ))
             .toList();
 
-        notificationRepository.saveAll(notifications);
+        List<Notification> saved = notificationRepository.saveAll(notifications);
 
-        notifications.stream()
+        saved.stream()
             .map(NotificationDto::from)
             .forEach(dto -> eventPublisher.publishEvent(new NotificationCreatedEvent(dto)));
 
@@ -211,11 +212,12 @@ public class PlaylistService {
             () -> new NoSuchElementException("플레이리스트가 존재하지 않습니다")
         );
 
-        List<User> followers = followRepository.findFollowersByFolloweeId(
-            playList.getOwner().getId());
+        List<Long> subscriberIds = subscriptionRepository.findUserIdsByPlaylistId(playlistId);
+        if (subscriberIds.isEmpty()) return;
 
-        List<Notification> notifications = followers.stream()
-            .filter(follower -> !follower.getId().equals(playList.getOwner().getId()))
+        List<User> subscribers = userRepository.findAllById(subscriberIds);
+
+        List<Notification> notifications = subscribers.stream()
             .map(receiver -> new Notification(
                 receiver,
                 "PLAYLIST_ADDED",
@@ -226,9 +228,9 @@ public class PlaylistService {
             ))
             .toList();
 
-        notificationRepository.saveAll(notifications);
+        List<Notification> saved = notificationRepository.saveAll(notifications);
 
-        notifications.stream()
+        saved.stream()
             .map(NotificationDto::from)
             .forEach(dto -> eventPublisher.publishEvent(new NotificationCreatedEvent(dto)));
     }
