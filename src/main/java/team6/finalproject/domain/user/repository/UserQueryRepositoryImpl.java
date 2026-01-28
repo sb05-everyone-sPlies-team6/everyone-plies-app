@@ -21,16 +21,17 @@ public class UserQueryRepositoryImpl implements UserQueryRepository {
   private final JPAQueryFactory queryFactory;
 
   @Override
-  public CursorResponse<UserDto> findAll(String emailLike, Role role, Boolean isLocked,
+  public CursorResponse<UserDto> findAll(String keyword, Role role, Boolean isLocked,
       String cursor, Long idAfter, int limit, String sortDirection, String sortBy) {
 
     String sortB = (sortBy == null || sortBy.isBlank()) ? "createdAt" : sortBy;
-    String sortD = (sortDirection == null || sortDirection.isBlank()) ? "ASCENDING" : sortDirection;
+    String sortD = (sortDirection == null || sortDirection.isBlank()) ? "ASC" : sortDirection;
 
     BooleanBuilder booleanBuilder = new BooleanBuilder();
 
-    if (emailLike != null && !emailLike.isBlank()) {
-      booleanBuilder.and(user.email.containsIgnoreCase(emailLike));
+    if (keyword != null && !keyword.isBlank()) {
+      booleanBuilder.and(user.email.containsIgnoreCase(keyword)
+          .or(user.name.containsIgnoreCase(keyword)));
     }
 
     if (role != null) {
@@ -41,7 +42,7 @@ public class UserQueryRepositoryImpl implements UserQueryRepository {
       booleanBuilder.and(user.locked.eq(isLocked));
     }
 
-    booleanBuilder.and(cursorPredicate(emailLike, role, isLocked,
+    booleanBuilder.and(cursorPredicate(keyword, role, isLocked,
         cursor, idAfter, limit, sortDirection, sortBy, sortB, sortD));
 
     List<OrderSpecifier<?>> orderSpecifiers = buildOrderSpecifiers(sortB, sortD);
@@ -65,7 +66,7 @@ public class UserQueryRepositoryImpl implements UserQueryRepository {
     Long total = queryFactory
         .select(user.count())
         .from(user)
-        .where(buildFilterOnlyPredicate(emailLike, role, isLocked,
+        .where(buildFilterOnlyPredicate(keyword, role, isLocked,
             cursor, idAfter, limit, sortDirection, sortBy))
         .fetchOne();
 
@@ -89,16 +90,14 @@ public class UserQueryRepositoryImpl implements UserQueryRepository {
     return result;
   }
 
-
-
-  private BooleanExpression cursorPredicate(String emailLike, Role role, Boolean isLocked,
+  private BooleanExpression cursorPredicate(String keyword, Role role, Boolean isLocked,
       String cursor, Long idAfter, int limit, String sortDirection, String sortBy, String sortB, String sortD) {
 
     if (cursor == null || cursor.isBlank() || idAfter == null) {
       return null;
     }
 
-    boolean asc = "ASCENDING".equalsIgnoreCase(sortDirection);
+    boolean asc = "ASC".equalsIgnoreCase(sortDirection);
 
     return switch (sortB) {
       case "createdAt" -> {
@@ -148,13 +147,14 @@ public class UserQueryRepositoryImpl implements UserQueryRepository {
     return List.of(primary, user.id.asc());
   }
 
-  private BooleanExpression buildFilterOnlyPredicate(String emailLike, Role role, Boolean isLocked,
+  private BooleanExpression buildFilterOnlyPredicate(String keyword, Role role, Boolean isLocked,
       String cursor, Long idAfter, int limit, String sortDirection, String sortBy) {
 
     BooleanBuilder booleanBuilder = new BooleanBuilder();
 
-    if (emailLike != null && !emailLike.isBlank()) {
-      booleanBuilder.and(user.email.containsIgnoreCase(emailLike));
+    if (keyword != null && !keyword.isBlank()) {
+      booleanBuilder.and(user.email.containsIgnoreCase(keyword)
+          .or(user.name.containsIgnoreCase(keyword)));
     }
     if (role != null) {
       booleanBuilder.and(user.role.eq(role));
